@@ -388,13 +388,15 @@ def inject_theme(theme):
     .stButton button[kind="primary"], .stFormSubmitButton button[kind="primary"] {{ border:1px solid {accent}; box-shadow:0 5px 18px {glow}; }}
     .stButton button:hover, .stDownloadButton button:hover {{ border-color:{accent}; transform:translateY(-1px); }}
     div[data-baseweb="input"] input, div[data-baseweb="select"] > div, textarea {{ border-radius:10px; }}
-    /* Radio controls styled as clean, switchable tabs */
-    div[data-testid="stRadio"] > div {{ gap:0; align-items:stretch; border-bottom:1px solid {border}; }}
-    div[data-testid="stRadio"] label {{ border:0 !important; border-bottom:2px solid transparent !important; border-radius:0 !important; padding:.78rem 1rem !important; background:transparent !important; transition:color .18s ease, border-color .18s ease, background .18s ease; }}
+    /* Minimal horizontal tab navigation */
+    div[data-testid="stRadio"] {{ margin:.15rem 0 .3rem; }}
+    div[data-testid="stRadio"] > div {{ gap:.25rem; align-items:stretch; border-bottom:1px solid {border}; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:thin; }}
+    div[data-testid="stRadio"] label {{ flex:0 0 auto; border:0 !important; border-bottom:2px solid transparent !important; border-radius:9px 9px 0 0 !important; padding:.8rem 1rem !important; background:transparent !important; transition:color .18s ease, border-color .18s ease, background .18s ease; cursor:pointer; }}
     div[data-testid="stRadio"] label > div:first-child {{ display:none !important; }}
     div[data-testid="stRadio"] label:has(input:checked) {{ border-bottom-color:{accent} !important; background:linear-gradient(180deg,transparent,{glow}) !important; color:{accent} !important; font-weight:750; }}
-    div[data-testid="stRadio"] label:hover {{ color:{accent} !important; }}
+    div[data-testid="stRadio"] label:hover {{ color:{accent} !important; background:{glow} !important; }}
     div[data-testid="stRadio"] label p {{ margin:0; white-space:nowrap; }}
+    @media (max-width: 800px) {{ div[data-testid="stRadio"] > div {{ overflow-x:auto; }} div[data-testid="stRadio"] label {{ padding:.7rem .8rem !important; }} }}
     .stAlert {{ border-radius:13px; border:1px solid {border}; }}
     [data-testid="stExpander"] {{ border:1px solid {border}; border-radius:14px; background:{card}; }}
     hr {{ border-color:{border}; opacity:.8; }}
@@ -455,6 +457,7 @@ def show_auth_page():
                             row = conn.execute("SELECT username FROM users WHERE username = ? COLLATE NOCASE", (username.strip(),)).fetchone()
                         st.session_state.auth_user = row[0]
                         st.session_state.page = "Overview"
+                        st.session_state.nav_radio = "Overview"
                         st.session_state.latest_report = None
                         st.session_state.latest_report_user = row[0]
                         st.rerun()
@@ -467,9 +470,6 @@ def app_topnav():
     pages = ["Overview", "Agent workspace", "Machine memory", "CSV & trends", "System guide"]
     if st.session_state.page not in pages:
         st.session_state.page = "Overview"
-    if st.session_state.get("nav_radio") != st.session_state.page:
-        st.session_state.nav_radio = st.session_state.page
-
     left, right = st.columns([1.55, 1.0], vertical_alignment="center")
     with left:
         st.markdown('<div class="brand-lockup"><div class="brand-mark">M</div><div><div class="brand-name">MECHGUARD <span style="color:#54E0C1">AI</span></div><div class="brand-sub">MAINTENANCE INTELLIGENCE</div></div></div>', unsafe_allow_html=True)
@@ -486,14 +486,19 @@ def app_topnav():
             if st.button("Sign out", key="top_signout", use_container_width=True):
                 st.session_state.auth_user = None
                 st.session_state.page = "Overview"
+                st.session_state.nav_radio = "Overview"
                 st.session_state.latest_report = None
                 st.session_state.latest_report_user = None
                 st.rerun()
     st.markdown('<div class="top-rule"></div>', unsafe_allow_html=True)
-    selected = st.radio("Main navigation", pages, horizontal=True, key="nav_radio", label_visibility="collapsed")
+    # The radio widget is the source of truth for navigation. Do not overwrite its
+    # value from the previous page on every rerun, or clicks will appear to do nothing.
+    selected = st.radio(
+        "Main navigation", pages, horizontal=True, key="nav_radio",
+        label_visibility="collapsed"
+    )
     if selected != st.session_state.page:
         st.session_state.page = selected
-        st.rerun()
     st.markdown('<div class="top-rule" style="margin-top:.35rem;margin-bottom:1.2rem"></div>', unsafe_allow_html=True)
 
 
@@ -512,15 +517,15 @@ def home_page(username):
     with c1:
         st.markdown('<div class="feature-card"><div class="feature-icon">◈</div><h3>Run diagnostics</h3><p>Analyse temperature, vibration, and service interval indicators.</p></div>', unsafe_allow_html=True)
         if st.button("Open agent workspace →", key="go_agent", use_container_width=True):
-            st.session_state.page = "Agent workspace"; st.rerun()
+            st.session_state.page = "Agent workspace"; st.session_state.nav_radio = "Agent workspace"; st.rerun()
     with c2:
         st.markdown('<div class="feature-card"><div class="feature-icon">◷</div><h3>Review machine memory</h3><p>Explore previous assessments and download your history.</p></div>', unsafe_allow_html=True)
         if st.button("View machine memory →", key="go_history", use_container_width=True):
-            st.session_state.page = "Machine memory"; st.rerun()
+            st.session_state.page = "Machine memory"; st.session_state.nav_radio = "Machine memory"; st.rerun()
     with c3:
         st.markdown('<div class="feature-card"><div class="feature-icon">↗</div><h3>Analyse sensor data</h3><p>Upload a CSV and inspect trends across saved readings.</p></div>', unsafe_allow_html=True)
         if st.button("Open CSV & trends →", key="go_csv", use_container_width=True):
-            st.session_state.page = "CSV & trends"; st.rerun()
+            st.session_state.page = "CSV & trends"; st.session_state.nav_radio = "CSV & trends"; st.rerun()
     st.markdown("### Recent activity")
     if history.empty:
         st.info("Your workspace is ready. Run your first assessment to start building machine memory.")
