@@ -346,79 +346,151 @@ if "page" not in st.session_state:
     st.session_state.page = "Overview"
 
 def inject_theme(theme):
-    # A restrained product palette inspired by premium consumer-tech interfaces.
+    """Inject a responsive, minimalist theme without changing app behaviour."""
     if theme == "Dark":
-        bg, panel, card, text, muted, border, accent = "#101114", "#17191D", "#1D2025", "#F5F5F7", "#A1A1AA", "#30343B", "#7DD3FC"
-        input_bg = "#22252B"
+        bg, panel, card, text, muted, border, accent = (
+            "#0B100D", "#111814", "#151E18", "#EEF4EC", "#9BAA9D", "#29372D", "#C7F36A"
+        )
+        input_bg = "#151E18"
+        accent_ink = "#172116"
+        glow = "rgba(199, 243, 106, .10)"
     else:
-        bg, panel, card, text, muted, border, accent = "#F5F5F7", "#FFFFFF", "#FFFFFF", "#1D1D1F", "#6E7075", "#E2E4E8", "#007AFF"
-        input_bg = "#F2F3F5"
+        bg, panel, card, text, muted, border, accent = (
+            "#F4F6F0", "#FFFFFF", "#FCFDF9", "#1A251D", "#707D72", "#E0E7DD", "#4F7542"
+        )
+        input_bg = "#F5F7F2"
+        accent_ink = "#FFFFFF"
+        glow = "rgba(79, 117, 66, .08)"
+
     st.markdown(f"""
     <style>
-    :root {{ color-scheme: {'dark' if theme == 'Dark' else 'light'}; }}
-    .stApp {{ background: {bg}; color: {text}; }}
-    /* Remove Streamlit's in-app chrome; Streamlit Cloud's external Manage app control may remain. */
-    [data-testid="stHeader"],
-    [data-testid="stToolbar"],
-    [data-testid="stDecoration"],
-    [data-testid="stStatusWidget"],
-    #MainMenu,
-    footer {{ visibility: hidden !important; height: 0 !important; }}
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+    :root {{
+        color-scheme: {'dark' if theme == 'Dark' else 'light'};
+        --mg-bg: {bg}; --mg-panel: {panel}; --mg-card: {card};
+        --mg-text: {text}; --mg-muted: {muted}; --mg-border: {border};
+        --mg-accent: {accent}; --mg-input: {input_bg};
+        --mg-accent-ink: {accent_ink}; --mg-glow: {glow};
+        --mg-radius: 18px;
+    }}
+    * {{ box-sizing: border-box; }}
+    html {{ scroll-behavior: smooth; }}
+    .stApp {{
+        background:
+            radial-gradient(ellipse at 92% 0%, var(--mg-glow), transparent 34%),
+            radial-gradient(ellipse at 0% 35%, {glow}, transparent 30%),
+            {bg};
+        color: {text}; font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        transition: background .25s ease, color .25s ease;
+    }}
+    [data-testid="stHeader"] {{ background: transparent; }}
     [data-testid="stSidebar"] {{ display:none; }}
-    .block-container {{ max-width: 1180px; padding-top: 1.4rem; padding-bottom: 3rem; }}
-    h1,h2,h3,h4,p,label,li {{ color: {text}; }}
-    h1 {{ letter-spacing: -.045em; font-weight: 720; }}
-    h2,h3 {{ letter-spacing: -.025em; font-weight: 680; }}
-    p,li {{ line-height: 1.6; }}
-    .muted, .stCaption {{ color: {muted} !important; }}
-    .brand-lockup {{ display:flex; align-items:center; gap:.7rem; padding:.1rem 0 .65rem; }}
-    .brand-mark {{ display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:9px; color:#101114; font-size:1.05rem; font-weight:800; background:{accent}; }}
-    .brand-name {{ font-size:1rem; line-height:1.2; font-weight:720; letter-spacing:-.025em; color:{text}; }}
-    .brand-sub {{ font-size:.62rem; letter-spacing:.11em; font-weight:650; color:{muted}; margin-top:.2rem; }}
-    .top-rule {{ height:1px; background:{border}; margin:.25rem 0 1.4rem; }}
-    .hero {{ padding:1.4rem 0 1.8rem; border-radius:0; background:transparent; border:0; border-bottom:1px solid {border}; margin:.4rem 0 1.6rem; }}
-    .hero-compact {{ border-bottom:0; padding:1rem 0 1.4rem; margin:0; }}
-    .hero-compact h1 {{ font-size:clamp(2.1rem,3.6vw,3.35rem); }}
-    .auth-panel {{ padding:.7rem 0 .35rem; }}
-    .auth-panel h2 {{ margin:.25rem 0 .45rem; font-size:1.8rem; }}
-    .auth-panel p {{ margin-bottom:1rem; }}
-    .feature-card {{ padding:.7rem 0 .8rem; }}
-    .hero-kicker {{ color:{accent}; text-transform:uppercase; letter-spacing:.12em; font-size:.68rem; font-weight:700; }}
-    .hero h1 {{ color:{text}; font-size:clamp(2rem,4vw,3.15rem); line-height:1.12; margin:.8rem 0 1rem; max-width:760px; font-weight:680; }}
-    .hero p {{ color:{muted}; font-size:1rem; max-width:700px; margin-bottom:1rem; }}
-    .pill {{ display:inline-flex; align-items:center; gap:.4rem; padding:.25rem 0; border:0; border-radius:0; color:{muted}; font-size:.76rem; font-weight:600; background:transparent; }}
-    .section-eyebrow {{ color:{accent}; text-transform:uppercase; letter-spacing:.14em; font-size:.68rem; font-weight:800; margin-bottom:.4rem; }}
-    .feature-card {{ background:transparent; border:0; border-radius:0; border-bottom:1px solid {border}; padding:.75rem 0 .9rem; min-height:0; }}
-    .feature-card h3 {{ margin:.2rem 0 .35rem; font-size:.98rem; font-weight:650; }}
-    .feature-card p {{ color:{muted}; font-size:.88rem; margin:0; max-width:520px; }}
-    .feature-icon {{ display:inline-flex; align-items:center; justify-content:center; width:1.5rem; height:1.5rem; border-radius:0; background:transparent; color:{accent}; font-size:1.05rem; margin-bottom:.35rem; }}
-    div[data-testid="stMetric"] {{ background:transparent; border:0; border-left:1px solid {border}; border-radius:0; padding:.25rem 1rem; box-shadow:none; }}
-    div[data-testid="stHorizontalBlock"]:has(div[data-testid="stMetric"]) {{ padding:.55rem 0 1rem; border-bottom:1px solid {border}; }}
-    div[data-testid="stMetricLabel"] p {{ color:{muted} !important; font-size:.78rem; font-weight:650; }}
-    div[data-testid="stMetricValue"] {{ font-weight:760; letter-spacing:-.035em; }}
-    div[data-testid="stDataFrame"] {{ border:0; border-radius:0; overflow:hidden; }}
-    .stButton button, .stDownloadButton button, .stFormSubmitButton button {{ border-radius:6px; font-weight:580; min-height:2.3rem; transition:background .15s ease,border-color .15s ease; box-shadow:none; }}
-    [data-testid="stForm"] {{ border:0 !important; padding:0 !important; }}
-    div[data-baseweb="input"] input {{ min-height:2.7rem; }}
-    .stCaption {{ font-size:.82rem; }}
-    .stButton button[kind="primary"], .stFormSubmitButton button[kind="primary"] {{ background:{accent}; color:#101114; border:1px solid {accent}; box-shadow:none; }}
-    .stButton button:hover, .stDownloadButton button:hover {{ border-color:{accent}; }}
-    div[data-baseweb="input"] input, div[data-baseweb="select"] > div, textarea {{ border-radius:10px; background:{input_bg}; }}
-    /* Horizontal navigation tabs: native Streamlit radio controls, styled as a clean tab strip. */
-    div[data-testid="stRadio"] {{ margin:.1rem 0 .25rem; }}
-    div[data-testid="stRadio"] > div {{ gap:.25rem; align-items:stretch; border-bottom:1px solid {border}; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:thin; }}
-    div[data-testid="stRadio"] label {{ flex:0 0 auto; border:0 !important; border-bottom:2px solid transparent !important; border-radius:0 !important; padding:.75rem .95rem !important; background:transparent !important; transition:color .15s ease,border-color .15s ease; cursor:pointer; }}
+    [data-testid="stToolbar"] {{ right: 1rem; }}
+    .block-container {{ max-width: 1260px; padding-top: 1rem; padding-bottom: 3.5rem; }}
+    h1,h2,h3,h4 {{ color: {text}; font-family: 'Manrope', 'DM Sans', sans-serif; letter-spacing: -.045em; }}
+    h1 {{ font-weight: 750; line-height: 1.08; }}
+    h2 {{ font-weight: 720; line-height: 1.16; }}
+    h3,h4 {{ font-weight: 700; }}
+    p,li {{ color: {text}; line-height: 1.7; }}
+    p {{ overflow-wrap: anywhere; }}
+    a {{ color: {accent}; text-underline-offset: 3px; }}
+    .muted, .stCaption, [data-testid="stCaptionContainer"] {{ color: {muted} !important; }}
+
+    /* Brand and page shell */
+    .brand-lockup {{ display:flex; align-items:center; gap:.85rem; padding:.25rem 0 .9rem; }}
+    .brand-mark {{ display:flex; align-items:center; justify-content:center; width:43px; height:43px; flex:0 0 43px; border-radius:14px; color:{accent_ink}; font:800 1.15rem 'Manrope',sans-serif; letter-spacing:-.08em; background:{accent}; box-shadow:0 8px 22px {glow}; }}
+    .brand-name {{ font:800 1.02rem 'Manrope',sans-serif; line-height:1.2; letter-spacing:-.035em; color:{text}; }}
+    .brand-sub {{ font:500 .62rem 'DM Mono',monospace; letter-spacing:.13em; color:{muted}; margin-top:.27rem; }}
+    .top-rule {{ height:1px; background:{border}; margin:.25rem 0 1.2rem; opacity:.9; }}
+    .hero {{
+        position:relative; overflow:hidden; padding:clamp(1.55rem,3.5vw,3rem);
+        border-radius:24px; background:linear-gradient(135deg,{panel} 0%,{bg} 100%);
+        border:1px solid {border}; margin:.8rem 0 1.6rem;
+        box-shadow:0 18px 55px rgba(0,0,0,.035);
+        animation:mg-enter .55s cubic-bezier(.2,.75,.25,1) both;
+    }}
+    .hero:after {{ content:""; position:absolute; width:260px; height:260px; right:-100px; top:-140px; border-radius:50%; border:1px solid {border}; box-shadow:0 0 0 34px {glow},0 0 0 70px {glow}; pointer-events:none; }}
+    .hero-kicker {{ color:{accent}; text-transform:uppercase; letter-spacing:.16em; font:500 .65rem 'DM Mono',monospace; }}
+    .hero h1 {{ color:{text}; font-size:clamp(2.25rem,4.5vw,3.8rem); line-height:1.04; margin:.85rem 0 1rem; max-width:880px; position:relative; z-index:1; }}
+    .hero p {{ color:{muted}; font-size:1rem; line-height:1.8; max-width:760px; margin-bottom:1.2rem; position:relative; z-index:1; }}
+    .pill {{ display:inline-flex; align-items:center; gap:.4rem; padding:.45rem .78rem; border:1px solid {border}; border-radius:999px; color:{text}; font-size:.72rem; font-weight:600; background:{card}; }}
+    .section-eyebrow {{ color:{accent}; text-transform:uppercase; letter-spacing:.15em; font:500 .64rem 'DM Mono',monospace; margin-bottom:.5rem; }}
+    .feature-card {{ background:linear-gradient(140deg,{panel},{card}); border:1px solid {border}; border-radius:17px; padding:1.15rem 1.2rem; min-height:128px; transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease; box-shadow:0 6px 22px rgba(0,0,0,.02); }}
+    .feature-card:hover {{ transform:translateY(-3px); border-color:{accent}; box-shadow:0 12px 28px {glow}; }}
+    .feature-card h3 {{ margin:.2rem 0 .45rem; font-size:1rem; letter-spacing:-.03em; }}
+    .feature-card p {{ color:{muted}; font-size:.83rem; line-height:1.7; margin:0; }}
+    .feature-icon {{ width:37px; height:37px; display:flex; align-items:center; justify-content:center; border-radius:12px; background:{input_bg}; color:{accent}; font-size:1.12rem; margin-bottom:.75rem; border:1px solid {border}; }}
+    .page-header {{ padding:.45rem 0 1.2rem; animation:mg-enter .4s ease both; }}
+    .page-header h1 {{ font-size:clamp(2rem,4vw,3rem); margin-bottom:.7rem; }}
+    .page-header p {{ color:{muted}; margin-top:-.15rem; }}
+
+    /* Metrics and data surfaces */
+    div[data-testid="stMetric"] {{ background:linear-gradient(140deg,{panel},{card}); border:1px solid {border}; border-radius:17px; padding:1.05rem 1.15rem; box-shadow:none; transition:transform .2s ease,border-color .2s ease; }}
+    div[data-testid="stMetric"]:hover {{ transform:translateY(-2px); border-color:{accent}; }}
+    div[data-testid="stMetricLabel"] p {{ color:{muted} !important; font:500 .72rem 'DM Mono',monospace; letter-spacing:.03em; }}
+    div[data-testid="stMetricValue"] {{ color:{text}; font:750 clamp(1.5rem,2.2vw,2rem) 'Manrope',sans-serif; letter-spacing:-.055em; }}
+    div[data-testid="stDataFrame"] {{ border:1px solid {border}; border-radius:14px; overflow:hidden; background:{panel}; }}
+    div[data-testid="stDataFrame"] [role="grid"] {{ border:0; }}
+    [data-testid="stVerticalBlockBorderWrapper"] {{ border-radius:18px; border-color:{border}; background:{panel}; box-shadow:0 8px 28px rgba(0,0,0,.025); }}
+    [data-testid="stExpander"] {{ border:1px solid {border}; border-radius:14px; background:{panel}; }}
+    [data-testid="stExpander"] details summary {{ padding:.45rem .3rem; }}
+    hr {{ border-color:{border}; opacity:.85; margin:1.35rem 0; }}
+
+    /* Inputs */
+    label, [data-testid="stWidgetLabel"] p {{ color:{text} !important; font-size:.82rem; font-weight:600; }}
+    div[data-baseweb="input"] input, div[data-baseweb="select"] > div, div[data-baseweb="textarea"] textarea, textarea {{
+        border-radius:12px !important; background:{input_bg} !important; color:{text} !important;
+        border-color:{border} !important; transition:border-color .18s ease,box-shadow .18s ease;
+    }}
+    div[data-baseweb="input"] input:focus, div[data-baseweb="textarea"] textarea:focus {{ border-color:{accent} !important; box-shadow:0 0 0 3px {glow} !important; }}
+    div[data-baseweb="select"] > div:hover {{ border-color:{accent} !important; }}
+    input::placeholder, textarea::placeholder {{ color:{muted} !important; opacity:.8; }}
+
+    /* Buttons */
+    .stButton button, .stDownloadButton button, .stFormSubmitButton button {{
+        min-height:2.6rem; border-radius:12px; padding:.45rem 1rem; font-weight:650;
+        transition:transform .17s ease,background .17s ease,border-color .17s ease,box-shadow .17s ease;
+        border-color:{border};
+    }}
+    .stButton button[kind="primary"], .stFormSubmitButton button[kind="primary"] {{ background:{accent}; color:{accent_ink}; border:1px solid {accent}; box-shadow:0 5px 16px {glow}; }}
+    .stButton button:hover, .stDownloadButton button:hover {{ border-color:{accent}; transform:translateY(-1px); }}
+    .stButton button[kind="primary"]:hover, .stFormSubmitButton button[kind="primary"]:hover {{ filter:brightness(1.04); box-shadow:0 8px 22px {glow}; }}
+    .stButton button:active, .stDownloadButton button:active {{ transform:scale(.985); }}
+
+    /* Horizontal navigation tabs / radio strip */
+    div[data-testid="stRadio"] {{ margin:.15rem 0 .3rem; }}
+    div[data-testid="stRadio"] > div {{ gap:.35rem; align-items:center; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:thin; padding:.25rem .1rem .6rem; }}
+    div[data-testid="stRadio"] label {{ flex:0 0 auto; border:1px solid transparent !important; border-radius:999px !important; padding:.55rem .9rem !important; background:transparent !important; transition:color .18s ease,background .18s ease,border-color .18s ease; cursor:pointer; }}
     div[data-testid="stRadio"] label > div:first-child {{ display:none !important; }}
-    div[data-testid="stRadio"] label:has(input:checked) {{ border-bottom-color:{accent} !important; color:{accent} !important; font-weight:750; }}
-    div[data-testid="stRadio"] label:hover {{ color:{accent} !important; }}
-    div[data-testid="stRadio"] label p {{ margin:0; white-space:nowrap; }}
-    .stAlert {{ border-radius:12px; border:1px solid {border}; }}
-    [data-testid="stExpander"] {{ border:0; border-top:1px solid {border}; border-radius:0; background:transparent; }}
-    hr {{ border-color:{border}; opacity:.8; }}
-    .page-header {{ padding:.3rem 0 1rem; border-bottom:1px solid {border}; margin-bottom:1.2rem; }}
-    [data-testid="stVerticalBlockBorderWrapper"] {{ border-color:{border} !important; box-shadow:none !important; }}
-    .page-header p {{ color:{muted}; margin-top:-.25rem; }}
-    @media (max-width: 800px) {{ .block-container {{ padding-top:.55rem; }} .hero {{ border-radius:0; }} .hero-compact {{ padding-top:.25rem; }} div[data-testid="stRadio"] > div {{ overflow-x:auto; }} div[data-testid="stRadio"] label {{ padding:.7rem .75rem !important; }} }}
+    div[data-testid="stRadio"] label:has(input:checked) {{ border-color:{border} !important; background:{panel} !important; color:{accent} !important; box-shadow:0 4px 13px rgba(0,0,0,.035); }}
+    div[data-testid="stRadio"] label:hover {{ color:{accent} !important; border-color:{border} !important; }}
+    div[data-testid="stRadio"] label p {{ margin:0; white-space:nowrap; font-size:.8rem; }}
+    .stAlert {{ border-radius:14px; border:1px solid {border}; }}
+    [data-testid="stNotification"] {{ border-radius:14px; }}
+    [data-testid="stFileUploader"] {{ border:1px dashed {border}; border-radius:14px; padding:.6rem; background:{panel}; }}
+    [data-testid="stProgress"] > div > div {{ background:{accent}; }}
+
+    @keyframes mg-enter {{ from {{ opacity:0; transform:translateY(9px); }} to {{ opacity:1; transform:translateY(0); }} }}
+    @media (prefers-reduced-motion: reduce) {{ *, *::before, *::after {{ animation-duration:.01ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; transition-duration:.01ms !important; }} }}
+    @media (max-width: 800px) {{
+        .block-container {{ padding-top:.55rem; padding-bottom:2rem; }}
+        .hero {{ border-radius:19px; padding:1.35rem; }}
+        .hero h1 {{ font-size:clamp(2rem,7vw,3.1rem); }}
+        .feature-card {{ padding:1rem; }}
+        div[data-testid="stRadio"] > div {{ overflow-x:auto; }}
+        div[data-testid="stRadio"] label {{ padding:.55rem .75rem !important; }}
+        div[data-testid="stMetric"] {{ padding:.8rem; }}
+    }}
+    @media (max-width: 520px) {{
+        .block-container {{ padding-left:1rem; padding-right:1rem; }}
+        .brand-mark {{ width:38px; height:38px; flex-basis:38px; border-radius:12px; }}
+        .brand-name {{ font-size:.94rem; }}
+        .brand-sub {{ font-size:.57rem; }}
+        .hero {{ padding:1.15rem; }}
+        .hero p {{ font-size:.91rem; }}
+        .feature-card {{ min-height:unset; }}
+        .stButton button, .stDownloadButton button, .stFormSubmitButton button {{ width:100%; }}
+    }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -428,65 +500,54 @@ def show_auth_page():
     st.markdown('''
     <div class="brand-lockup"><div class="brand-mark">M</div><div><div class="brand-name">MECHGUARD AI</div><div class="brand-sub">MAINTENANCE INTELLIGENCE</div></div></div>
     <div class="top-rule"></div>
+    <div class="hero"><div class="hero-kicker">ENGINEERING INSIGHT · OPERATIONAL CLARITY</div><h1>Know your machines.<br>Act with confidence.</h1><p>A focused maintenance workspace for turning sensor readings into clear diagnostics, historical context, and prioritised next steps.</p><span class="pill">Local-first&nbsp; · &nbsp;Explainable&nbsp; · &nbsp;No paid APIs</span></div>
     ''', unsafe_allow_html=True)
-
-    # Keep the product message and sign-in form side by side at the top.
-    intro, auth = st.columns([1.15, .85], gap="large", vertical_alignment="top")
-    with intro:
+    left, right = st.columns([1.05, .95], gap="large", vertical_alignment="top")
+    with left:
+        st.markdown('<div class="section-eyebrow">BUILT FOR CLARITY</div><h2>Maintenance decisions, backed by evidence.</h2><p class="muted">Everything important, without the dashboard clutter.</p>', unsafe_allow_html=True)
         st.markdown('''
-        <div class="hero hero-compact">
-          <div class="hero-kicker">ENGINEERING INSIGHT · OPERATIONAL CLARITY</div>
-          <h1>Know your machines.<br>Act with confidence.</h1>
-          <p>A focused maintenance workspace for turning sensor readings into clear diagnostics, historical context, and prioritised next steps.</p>
-          <span class="pill">Local-first&nbsp; · &nbsp;Explainable&nbsp; · &nbsp;No paid APIs</span>
-        </div>
+        <div class="feature-card"><div class="feature-icon">⌁</div><h3>Explainable diagnostics</h3><p>See which checks ran, what they found, and how the agent reached its recommendation.</p></div>
+        <div style="height:10px"></div>
+        <div class="feature-card"><div class="feature-icon">◷</div><h3>Machine history</h3><p>Compare readings over time and surface changes that may deserve attention.</p></div>
+        <div style="height:10px"></div>
+        <div class="feature-card"><div class="feature-icon">↗</div><h3>Sensor data, in one place</h3><p>Import CSV readings and use the same diagnostic workflow to assess them.</p></div>
         ''', unsafe_allow_html=True)
-
-    with auth:
-        st.markdown('<div class="auth-panel"><div class="section-eyebrow">YOUR WORKSPACE</div><h2>Welcome to MechGuard</h2><p class="muted">Sign in or create a local demo account to continue.</p></div>', unsafe_allow_html=True)
-        mode = st.radio("Account", ["Sign in", "Create account"], horizontal=True, key="auth_mode", label_visibility="collapsed")
-        with st.form("auth_form", clear_on_submit=False):
-            username = st.text_input("Username", placeholder="Enter your username")
-            password = st.text_input("Password", type="password", placeholder="Enter your password")
-            confirm = ""
-            if mode == "Create account":
-                confirm = st.text_input("Confirm password", type="password", placeholder="Re-enter your password")
-                st.caption("Username: 3–24 characters. Password: at least 8 characters.")
-            submitted = st.form_submit_button("Sign in" if mode == "Sign in" else "Create account", type="primary", use_container_width=True)
-        if submitted:
-            if mode == "Create account":
-                if password != confirm:
-                    st.error("Passwords do not match.")
-                else:
-                    ok, message = register_user(username, password)
-                    if ok:
-                        st.success(message + " Switch to Sign in to continue.")
+        st.caption("Educational prototype. Thresholds are illustrative, not real-world machine safety limits.")
+    with right:
+        with st.container(border=True):
+            st.markdown('<div class="section-eyebrow">YOUR WORKSPACE</div><h2>Welcome to MechGuard</h2><p class="muted">Sign in or create a local demo account to continue.</p>', unsafe_allow_html=True)
+            mode = st.radio("Account", ["Sign in", "Create account"], horizontal=True, key="auth_mode", label_visibility="collapsed")
+            with st.form("auth_form", clear_on_submit=False):
+                username = st.text_input("Username", placeholder="Enter your username")
+                password = st.text_input("Password", type="password", placeholder="Enter your password")
+                confirm = ""
+                if mode == "Create account":
+                    confirm = st.text_input("Confirm password", type="password", placeholder="Re-enter your password")
+                    st.caption("Use 3–24 characters for the username and at least 8 characters for the password.")
+                submitted = st.form_submit_button("Sign in" if mode == "Sign in" else "Create account", type="primary", use_container_width=True)
+            if submitted:
+                if mode == "Create account":
+                    if password != confirm:
+                        st.error("Passwords do not match.")
                     else:
-                        st.error(message)
-            else:
-                if verify_user(username, password):
-                    with db() as conn:
-                        row = conn.execute("SELECT username FROM users WHERE username = ? COLLATE NOCASE", (username.strip(),)).fetchone()
-                    st.session_state.auth_user = row[0]
-                    st.session_state.page = "Overview"
-                    st.session_state.nav_radio = "Overview"
-                    st.session_state.latest_report = None
-                    st.session_state.latest_report_user = row[0]
-                    st.rerun()
+                        ok, message = register_user(username, password)
+                        if ok:
+                            st.success(message + " Switch to Sign in to continue.")
+                        else:
+                            st.error(message)
                 else:
-                    st.error("Incorrect username or password.")
-        st.caption("Local classroom authentication. Not intended for production multi-user security.")
-
-    st.markdown('<div class="top-rule"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-eyebrow">BUILT FOR CLARITY</div><h2>Maintenance decisions, backed by evidence.</h2>', unsafe_allow_html=True)
-    f1, f2, f3 = st.columns(3, gap="large")
-    with f1:
-        st.markdown('<div class="feature-card"><h3>Explainable diagnostics</h3><p>See which checks ran, what they found, and why an action was recommended.</p></div>', unsafe_allow_html=True)
-    with f2:
-        st.markdown('<div class="feature-card"><h3>Machine history</h3><p>Compare saved readings and identify changes that deserve attention.</p></div>', unsafe_allow_html=True)
-    with f3:
-        st.markdown('<div class="feature-card"><h3>Sensor data, in one place</h3><p>Import CSV readings and use the same diagnostic workflow to assess them.</p></div>', unsafe_allow_html=True)
-    st.caption("Educational prototype. Thresholds are illustrative, not real-world machine safety limits.")
+                    if verify_user(username, password):
+                        with db() as conn:
+                            row = conn.execute("SELECT username FROM users WHERE username = ? COLLATE NOCASE", (username.strip(),)).fetchone()
+                        st.session_state.auth_user = row[0]
+                        st.session_state.page = "Overview"
+                        st.session_state.nav_radio = "Overview"
+                        st.session_state.latest_report = None
+                        st.session_state.latest_report_user = row[0]
+                        st.rerun()
+                    else:
+                        st.error("Incorrect username or password.")
+            st.caption("Local classroom authentication. Not intended for production multi-user security.")
 
 
 def app_topnav():
@@ -530,48 +591,32 @@ def home_page(username):
     total = len(history)
     high = int((history["severity"] == "HIGH").sum()) if total else 0
     machines = int(history["machine"].nunique()) if total else 0
-
-    st.markdown(
-        f'<div class="hero"><div class="hero-kicker">OPERATIONS OVERVIEW</div>'
-        f'<h1>Good to see you, {username}.</h1>'
-        '<p>Monitor machine condition, review diagnostic evidence, and decide what needs attention next.</p>'
-        '<span class="pill">● Local workspace · Ready</span></div>',
-        unsafe_allow_html=True,
-    )
-
-    a, b, c = st.columns(3)
-    a.metric("Assessments", total)
+    st.markdown(f'<div class="hero"><div class="hero-kicker">YOUR OPERATIONS OVERVIEW</div><h1>Good to see you, {username}.</h1><p>One clear view of machine condition, diagnostic activity and maintenance signals. Start an assessment or explore the evidence behind previous reports.</p><span class="pill">● Workspace operational</span></div>', unsafe_allow_html=True)
+    a,b,c = st.columns(3)
+    a.metric("Assessments saved", total)
     b.metric("Machines tracked", machines)
-    c.metric("High-priority", high)
-
-    st.markdown('<div class="section-eyebrow">WORKSPACE</div><h2>Choose where to begin</h2>', unsafe_allow_html=True)
-    actions = [
-        ("Agent workspace", "Run a diagnostic assessment", "Enter sensor readings and review the agent’s findings."),
-        ("Machine memory", "Review machine history", "Compare previous assessments and download records."),
-        ("CSV & trends", "Analyse sensor data", "Import a CSV and explore changes across readings."),
-    ]
-    for page_name, title, description in actions:
-        left, middle, right = st.columns([1.1, 3.8, 1.2], vertical_alignment="center")
-        with left:
-            st.markdown(f'<span style="color:var(--primary-color);font-weight:650">{page_name}</span>', unsafe_allow_html=True)
-        with middle:
-            st.markdown(f'**{title}**  \n\n<span class="muted">{description}</span>', unsafe_allow_html=True)
-        with right:
-            if st.button("Open →", key="open_" + page_name, use_container_width=True):
-                st.session_state.page = page_name
-                st.session_state.nav_radio = page_name
-                st.rerun()
-        st.markdown('<div class="top-rule" style="margin:.25rem 0 .6rem"></div>', unsafe_allow_html=True)
-
+    c.metric("High-priority reports", high)
+    st.markdown('<div class="section-eyebrow">QUICK ACTIONS</div><h2>Where would you like to start?</h2>', unsafe_allow_html=True)
+    c1,c2,c3 = st.columns(3, gap="medium")
+    with c1:
+        st.markdown('<div class="feature-card"><div class="feature-icon">◈</div><h3>Run diagnostics</h3><p>Analyse temperature, vibration, and service interval indicators.</p></div>', unsafe_allow_html=True)
+        if st.button("Open agent workspace →", key="go_agent", use_container_width=True):
+            st.session_state.page = "Agent workspace"; st.session_state.nav_radio = "Agent workspace"; st.rerun()
+    with c2:
+        st.markdown('<div class="feature-card"><div class="feature-icon">◷</div><h3>Review machine memory</h3><p>Explore previous assessments and download your history.</p></div>', unsafe_allow_html=True)
+        if st.button("View machine memory →", key="go_history", use_container_width=True):
+            st.session_state.page = "Machine memory"; st.session_state.nav_radio = "Machine memory"; st.rerun()
+    with c3:
+        st.markdown('<div class="feature-card"><div class="feature-icon">↗</div><h3>Analyse sensor data</h3><p>Upload a CSV and inspect trends across saved readings.</p></div>', unsafe_allow_html=True)
+        if st.button("Open CSV & trends →", key="go_csv", use_container_width=True):
+            st.session_state.page = "CSV & trends"; st.session_state.nav_radio = "CSV & trends"; st.rerun()
     st.markdown("### Recent activity")
     if history.empty:
-        st.caption("No assessments yet. Run your first diagnostic to begin building machine history.")
+        st.info("Your workspace is ready. Run your first assessment to start building machine memory.")
     else:
-        st.dataframe(
-            history[["timestamp", "machine", "temperature", "vibration", "operating_hours", "severity", "risk_score"]].head(5),
-            use_container_width=True, hide_index=True,
-        )
-    st.caption("Educational prototype · Thresholds are illustrative and are not machine safety limits.")
+        st.dataframe(history[["timestamp","machine","temperature","vibration","operating_hours","severity","risk_score"]].head(5),
+                     use_container_width=True, hide_index=True)
+    st.caption("Prototype note: demo thresholds are illustrative and should not be used as real-world safety limits.")
 
 def workspace_page(username):
     st.markdown('<div class="page-header"><div class="section-eyebrow">DIAGNOSTICS / AGENT</div><h1>Agent workspace</h1><p>Configure a machine snapshot and let the agent investigate the evidence.</p></div>', unsafe_allow_html=True)
