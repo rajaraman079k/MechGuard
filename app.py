@@ -347,15 +347,15 @@ if "page" not in st.session_state:
 
 def inject_theme(theme):
     if theme == "Dark":
-        bg, panel, card, text, muted, border, accent = "#080D18", "#0E1727", "#111E31", "#F1F5FB", "#92A2B8", "#24334A", "#54E0C1"
-        glow = "rgba(84,224,193,.12)"
+        bg, panel, card, text, muted, border, accent = "#0F172A", "#111C30", "#162238", "#F1F5F9", "#94A3B8", "#29384E", "#5EEAD4"
+        glow = "rgba(94,234,212,.08)"
     else:
-        bg, panel, card, text, muted, border, accent = "#F4F7FB", "#FFFFFF", "#FFFFFF", "#162238", "#68788E", "#DFE6EF", "#087F72"
-        glow = "rgba(8,127,114,.08)"
+        bg, panel, card, text, muted, border, accent = "#F8FAFC", "#FFFFFF", "#FFFFFF", "#172033", "#64748B", "#E2E8F0", "#0F766E"
+        glow = "rgba(15,118,110,.06)"
     st.markdown(f"""
     <style>
     :root {{ color-scheme: {'dark' if theme == 'Dark' else 'light'}; }}
-    .stApp {{ background: radial-gradient(ellipse at 12% 0%, {glow}, transparent 34%), {bg}; color: {text}; }}
+    .stApp {{ background: {bg}; color: {text}; }}
     [data-testid="stHeader"] {{ background: transparent; }}
     [data-testid="stSidebar"] {{ display:none; }}
     .block-container {{ max-width: 1420px; padding-top: 1.2rem; padding-bottom: 4rem; }}
@@ -365,35 +365,35 @@ def inject_theme(theme):
     p,li {{ line-height: 1.65; }}
     .muted, .stCaption {{ color: {muted} !important; }}
     .brand-lockup {{ display:flex; align-items:center; gap:.8rem; padding:.45rem 0 .8rem; }}
-    .brand-mark {{ display:flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:14px; color:#06131A; font-size:1.35rem; font-weight:900; background:linear-gradient(135deg,{accent},#80F0D9); box-shadow:0 8px 26px {glow}; }}
+    .brand-mark {{ display:flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:12px; color:#06201D; font-size:1.35rem; font-weight:900; background:{accent}; }}
     .brand-name {{ font-size:1.15rem; line-height:1.2; font-weight:800; letter-spacing:-.035em; color:{text}; }}
     .brand-sub {{ font-size:.68rem; letter-spacing:.16em; font-weight:750; color:{muted}; margin-top:.2rem; }}
-    .top-rule {{ height:1px; background:linear-gradient(90deg, {accent}, {border} 45%, transparent); opacity:.7; margin:.2rem 0 1rem; }}
-    .hero {{ position:relative; overflow:hidden; padding:clamp(1.5rem,3vw,2.7rem); border-radius:25px; background:linear-gradient(125deg,{panel} 0%,{card} 70%,{panel} 100%); border:1px solid {border}; margin:.8rem 0 1.35rem; box-shadow:0 20px 70px rgba(0,0,0,.10); }}
-    .hero:after {{ content:""; position:absolute; width:290px; height:290px; border-radius:50%; right:-80px; top:-130px; border:1px solid {accent}; opacity:.22; box-shadow:0 0 0 32px {glow},0 0 0 64px {glow}; pointer-events:none; }}
+    .top-rule {{ height:1px; background:{border}; opacity:1; margin:.2rem 0 1rem; }}
+    .hero {{ position:relative; overflow:hidden; padding:clamp(1.5rem,3vw,2.7rem); border-radius:18px; background:{panel}; border:1px solid {border}; margin:.8rem 0 1.35rem; }}
+    .hero:after {{ content:none; }}
     .hero-kicker {{ color:{accent}; text-transform:uppercase; letter-spacing:.19em; font-size:.72rem; font-weight:800; }}
     .hero h1 {{ color:{text}; font-size:clamp(2.2rem,4.8vw,4.1rem); line-height:1.04; margin:.7rem 0 .85rem; max-width:850px; }}
     .hero p {{ color:{muted}; font-size:1.02rem; max-width:730px; margin-bottom:1.1rem; }}
     .pill {{ display:inline-flex; align-items:center; gap:.45rem; padding:.38rem .75rem; border:1px solid {border}; border-radius:999px; color:{accent}; font-size:.77rem; font-weight:700; background:{glow}; }}
     .section-eyebrow {{ color:{accent}; text-transform:uppercase; letter-spacing:.15em; font-size:.7rem; font-weight:800; margin-bottom:.35rem; }}
-    .feature-card {{ background:linear-gradient(150deg,{card},{panel}); border:1px solid {border}; border-radius:18px; padding:1.25rem; min-height:160px; box-shadow:0 8px 28px rgba(0,0,0,.04); transition:transform .18s ease,border-color .18s ease; }}
+    .feature-card {{ background:{card}; border:1px solid {border}; border-radius:14px; padding:1.25rem; min-height:160px; transition:border-color .18s ease, background .18s ease; }}
     .feature-card h3 {{ margin:.35rem 0 .45rem; font-size:1.02rem; }}
     .feature-card p {{ color:{muted}; font-size:.9rem; margin:0; }}
     .feature-icon {{ width:40px; height:40px; display:flex; align-items:center; justify-content:center; border-radius:12px; background:{glow}; color:{accent}; font-size:1.25rem; margin-bottom:.8rem; }}
-    div[data-testid="stMetric"] {{ background:linear-gradient(145deg,{card},{panel}); border:1px solid {border}; border-radius:17px; padding:1.15rem 1.25rem; box-shadow:0 8px 26px rgba(0,0,0,.04); }}
+    div[data-testid="stMetric"] {{ background:{card}; border:1px solid {border}; border-radius:14px; padding:1.15rem 1.25rem; box-shadow:none; }}
     div[data-testid="stMetricLabel"] p {{ color:{muted} !important; font-size:.78rem; font-weight:650; }}
     div[data-testid="stMetricValue"] {{ font-weight:780; letter-spacing:-.04em; }}
     div[data-testid="stDataFrame"] {{ border:1px solid {border}; border-radius:14px; overflow:hidden; }}
-    .stButton button, .stDownloadButton button, .stFormSubmitButton button {{ border-radius:11px; font-weight:700; min-height:2.65rem; transition:all .18s ease; }}
+    .stButton button, .stDownloadButton button, .stFormSubmitButton button {{ border-radius:11px; font-weight:700; min-height:2.65rem; transition:background .18s ease,border-color .18s ease,color .18s ease; }}
     .stButton button[kind="primary"], .stFormSubmitButton button[kind="primary"] {{ border:1px solid {accent}; box-shadow:0 5px 18px {glow}; }}
-    .stButton button:hover, .stDownloadButton button:hover {{ border-color:{accent}; transform:translateY(-1px); }}
+    .stButton button:hover, .stDownloadButton button:hover {{ border-color:{accent}; }}
     div[data-baseweb="input"] input, div[data-baseweb="select"] > div, textarea {{ border-radius:10px; }}
     /* Minimal horizontal tab navigation */
     div[data-testid="stRadio"] {{ margin:.15rem 0 .3rem; }}
     div[data-testid="stRadio"] > div {{ gap:.25rem; align-items:stretch; border-bottom:1px solid {border}; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:thin; }}
     div[data-testid="stRadio"] label {{ flex:0 0 auto; border:0 !important; border-bottom:2px solid transparent !important; border-radius:9px 9px 0 0 !important; padding:.8rem 1rem !important; background:transparent !important; transition:color .18s ease, border-color .18s ease, background .18s ease; cursor:pointer; }}
     div[data-testid="stRadio"] label > div:first-child {{ display:none !important; }}
-    div[data-testid="stRadio"] label:has(input:checked) {{ border-bottom-color:{accent} !important; background:linear-gradient(180deg,transparent,{glow}) !important; color:{accent} !important; font-weight:750; }}
+    div[data-testid="stRadio"] label:has(input:checked) {{ border-bottom-color:{accent} !important; background:transparent !important; color:{accent} !important; font-weight:750; }}
     div[data-testid="stRadio"] label:hover {{ color:{accent} !important; background:{glow} !important; }}
     div[data-testid="stRadio"] label p {{ margin:0; white-space:nowrap; }}
     @media (max-width: 800px) {{ div[data-testid="stRadio"] > div {{ overflow-x:auto; }} div[data-testid="stRadio"] label {{ padding:.7rem .8rem !important; }} }}
@@ -403,7 +403,7 @@ def inject_theme(theme):
     .page-header {{ padding:.3rem 0 1rem; }}
     .page-header p {{ color:{muted}; margin-top:-.25rem; }}
     .status-dot {{ display:inline-block; width:8px; height:8px; border-radius:50%; background:{accent}; margin-right:.4rem; box-shadow:0 0 0 4px {glow}; }}
-    @media (max-width: 800px) {{ .block-container {{ padding-top:.6rem; }} .hero {{ border-radius:18px; }} .hero:after {{ opacity:.1; }} }}
+    @media (max-width: 800px) {{ .block-container {{ padding-top:.6rem; }} .hero {{ border-radius:14px; }} }}
     </style>
     """, unsafe_allow_html=True)
 
