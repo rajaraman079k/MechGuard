@@ -357,35 +357,44 @@ def inject_theme(theme):
     <style>
     :root {{ color-scheme: {'dark' if theme == 'Dark' else 'light'}; }}
     .stApp {{ background: {bg}; color: {text}; }}
-    [data-testid="stHeader"] {{ background: {bg}; }}
+    /* Remove Streamlit's in-app chrome; Streamlit Cloud's external Manage app control may remain. */
+    [data-testid="stHeader"],
+    [data-testid="stToolbar"],
+    [data-testid="stDecoration"],
+    [data-testid="stStatusWidget"],
+    #MainMenu,
+    footer {{ visibility: hidden !important; height: 0 !important; }}
     [data-testid="stSidebar"] {{ display:none; }}
-    .block-container {{ max-width: 1320px; padding-top: 1.15rem; padding-bottom: 3rem; }}
+    .block-container {{ max-width: 1180px; padding-top: 1.4rem; padding-bottom: 3rem; }}
     h1,h2,h3,h4,p,label,li {{ color: {text}; }}
     h1 {{ letter-spacing: -.045em; font-weight: 720; }}
     h2,h3 {{ letter-spacing: -.025em; font-weight: 680; }}
     p,li {{ line-height: 1.6; }}
     .muted, .stCaption {{ color: {muted} !important; }}
-    .brand-lockup {{ display:flex; align-items:center; gap:.8rem; padding:.3rem 0 .7rem; }}
-    .brand-mark {{ display:flex; align-items:center; justify-content:center; width:42px; height:42px; border-radius:13px; color:#101114; font-size:1.25rem; font-weight:850; background:{accent}; }}
-    .brand-name {{ font-size:1.08rem; line-height:1.2; font-weight:780; letter-spacing:-.035em; color:{text}; }}
-    .brand-sub {{ font-size:.65rem; letter-spacing:.13em; font-weight:700; color:{muted}; margin-top:.2rem; }}
-    .top-rule {{ height:1px; background:{border}; margin:.25rem 0 1rem; }}
-    .hero {{ padding:1.2rem 0 1.6rem; border-radius:0; background:transparent; border:0; border-bottom:1px solid {border}; margin:.8rem 0 1.5rem; }}
-    .hero-kicker {{ color:{accent}; text-transform:uppercase; letter-spacing:.16em; font-size:.7rem; font-weight:800; }}
-    .hero h1 {{ color:{text}; font-size:clamp(2.2rem,4.5vw,3.65rem); line-height:1.07; margin:.75rem 0 .9rem; max-width:850px; }}
-    .hero p {{ color:{muted}; font-size:1.02rem; max-width:760px; margin-bottom:1.15rem; }}
+    .brand-lockup {{ display:flex; align-items:center; gap:.7rem; padding:.1rem 0 .65rem; }}
+    .brand-mark {{ display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:9px; color:#101114; font-size:1.05rem; font-weight:800; background:{accent}; }}
+    .brand-name {{ font-size:1rem; line-height:1.2; font-weight:720; letter-spacing:-.025em; color:{text}; }}
+    .brand-sub {{ font-size:.62rem; letter-spacing:.11em; font-weight:650; color:{muted}; margin-top:.2rem; }}
+    .top-rule {{ height:1px; background:{border}; margin:.25rem 0 1.4rem; }}
+    .hero {{ padding:1.4rem 0 1.8rem; border-radius:0; background:transparent; border:0; border-bottom:1px solid {border}; margin:.4rem 0 1.6rem; }}
+    .hero-kicker {{ color:{accent}; text-transform:uppercase; letter-spacing:.12em; font-size:.68rem; font-weight:700; }}
+    .hero h1 {{ color:{text}; font-size:clamp(2rem,4vw,3.15rem); line-height:1.12; margin:.8rem 0 1rem; max-width:760px; font-weight:680; }}
+    .hero p {{ color:{muted}; font-size:1rem; max-width:700px; margin-bottom:1rem; }}
     .pill {{ display:inline-flex; align-items:center; gap:.4rem; padding:.25rem 0; border:0; border-radius:0; color:{muted}; font-size:.76rem; font-weight:600; background:transparent; }}
     .section-eyebrow {{ color:{accent}; text-transform:uppercase; letter-spacing:.14em; font-size:.68rem; font-weight:800; margin-bottom:.4rem; }}
-    .feature-card {{ background:transparent; border:0; border-radius:0; border-bottom:1px solid {border}; padding:.9rem 0 1rem; min-height:0; }}
-    .feature-card h3 {{ margin:.3rem 0 .4rem; font-size:1rem; }}
-    .feature-card p {{ color:{muted}; font-size:.88rem; margin:0; }}
+    .feature-card {{ background:transparent; border:0; border-radius:0; border-bottom:1px solid {border}; padding:.75rem 0 .9rem; min-height:0; }}
+    .feature-card h3 {{ margin:.2rem 0 .35rem; font-size:.98rem; font-weight:650; }}
+    .feature-card p {{ color:{muted}; font-size:.88rem; margin:0; max-width:520px; }}
     .feature-icon {{ display:inline-flex; align-items:center; justify-content:center; width:1.5rem; height:1.5rem; border-radius:0; background:transparent; color:{accent}; font-size:1.05rem; margin-bottom:.35rem; }}
     div[data-testid="stMetric"] {{ background:transparent; border:0; border-left:1px solid {border}; border-radius:0; padding:.25rem 1rem; box-shadow:none; }}
     div[data-testid="stHorizontalBlock"]:has(div[data-testid="stMetric"]) {{ padding:.55rem 0 1rem; border-bottom:1px solid {border}; }}
     div[data-testid="stMetricLabel"] p {{ color:{muted} !important; font-size:.78rem; font-weight:650; }}
     div[data-testid="stMetricValue"] {{ font-weight:760; letter-spacing:-.035em; }}
     div[data-testid="stDataFrame"] {{ border:0; border-radius:0; overflow:hidden; }}
-    .stButton button, .stDownloadButton button, .stFormSubmitButton button {{ border-radius:7px; font-weight:600; min-height:2.35rem; transition:background .15s ease,border-color .15s ease; box-shadow:none; }}
+    .stButton button, .stDownloadButton button, .stFormSubmitButton button {{ border-radius:6px; font-weight:580; min-height:2.3rem; transition:background .15s ease,border-color .15s ease; box-shadow:none; }}
+    [data-testid="stForm"] {{ border:0 !important; padding:0 !important; }}
+    div[data-baseweb="input"] input {{ min-height:2.7rem; }}
+    .stCaption {{ font-size:.82rem; }}
     .stButton button[kind="primary"], .stFormSubmitButton button[kind="primary"] {{ background:{accent}; color:#101114; border:1px solid {accent}; box-shadow:none; }}
     .stButton button:hover, .stDownloadButton button:hover {{ border-color:{accent}; }}
     div[data-baseweb="input"] input, div[data-baseweb="select"] > div, textarea {{ border-radius:10px; background:{input_bg}; }}
@@ -401,6 +410,7 @@ def inject_theme(theme):
     [data-testid="stExpander"] {{ border:0; border-top:1px solid {border}; border-radius:0; background:transparent; }}
     hr {{ border-color:{border}; opacity:.8; }}
     .page-header {{ padding:.3rem 0 1rem; border-bottom:1px solid {border}; margin-bottom:1.2rem; }}
+    [data-testid="stVerticalBlockBorderWrapper"] {{ border-color:{border} !important; box-shadow:none !important; }}
     .page-header p {{ color:{muted}; margin-top:-.25rem; }}
     @media (max-width: 800px) {{ .block-container {{ padding-top:.55rem; }} .hero {{ border-radius:16px; }} div[data-testid="stRadio"] > div {{ overflow-x:auto; }} div[data-testid="stRadio"] label {{ padding:.7rem .75rem !important; }} }}
     </style>
@@ -426,7 +436,7 @@ def show_auth_page():
         ''', unsafe_allow_html=True)
         st.caption("Educational prototype. Thresholds are illustrative, not real-world machine safety limits.")
     with right:
-        with st.container(border=True):
+        with st.container():
             st.markdown('<div class="section-eyebrow">YOUR WORKSPACE</div><h2>Welcome to MechGuard</h2><p class="muted">Sign in or create a local demo account to continue.</p>', unsafe_allow_html=True)
             mode = st.radio("Account", ["Sign in", "Create account"], horizontal=True, key="auth_mode", label_visibility="collapsed")
             with st.form("auth_form", clear_on_submit=False):
