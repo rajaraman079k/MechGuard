@@ -377,6 +377,12 @@ def inject_theme(theme):
     .brand-sub {{ font-size:.62rem; letter-spacing:.11em; font-weight:650; color:{muted}; margin-top:.2rem; }}
     .top-rule {{ height:1px; background:{border}; margin:.25rem 0 1.4rem; }}
     .hero {{ padding:1.4rem 0 1.8rem; border-radius:0; background:transparent; border:0; border-bottom:1px solid {border}; margin:.4rem 0 1.6rem; }}
+    .hero-compact {{ border-bottom:0; padding:1rem 0 1.4rem; margin:0; }}
+    .hero-compact h1 {{ font-size:clamp(2.1rem,3.6vw,3.35rem); }}
+    .auth-panel {{ padding:.7rem 0 .35rem; }}
+    .auth-panel h2 {{ margin:.25rem 0 .45rem; font-size:1.8rem; }}
+    .auth-panel p {{ margin-bottom:1rem; }}
+    .feature-card {{ padding:.7rem 0 .8rem; }}
     .hero-kicker {{ color:{accent}; text-transform:uppercase; letter-spacing:.12em; font-size:.68rem; font-weight:700; }}
     .hero h1 {{ color:{text}; font-size:clamp(2rem,4vw,3.15rem); line-height:1.12; margin:.8rem 0 1rem; max-width:760px; font-weight:680; }}
     .hero p {{ color:{muted}; font-size:1rem; max-width:700px; margin-bottom:1rem; }}
@@ -412,7 +418,7 @@ def inject_theme(theme):
     .page-header {{ padding:.3rem 0 1rem; border-bottom:1px solid {border}; margin-bottom:1.2rem; }}
     [data-testid="stVerticalBlockBorderWrapper"] {{ border-color:{border} !important; box-shadow:none !important; }}
     .page-header p {{ color:{muted}; margin-top:-.25rem; }}
-    @media (max-width: 800px) {{ .block-container {{ padding-top:.55rem; }} .hero {{ border-radius:16px; }} div[data-testid="stRadio"] > div {{ overflow-x:auto; }} div[data-testid="stRadio"] label {{ padding:.7rem .75rem !important; }} }}
+    @media (max-width: 800px) {{ .block-container {{ padding-top:.55rem; }} .hero {{ border-radius:0; }} .hero-compact {{ padding-top:.25rem; }} div[data-testid="stRadio"] > div {{ overflow-x:auto; }} div[data-testid="stRadio"] label {{ padding:.7rem .75rem !important; }} }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -422,54 +428,65 @@ def show_auth_page():
     st.markdown('''
     <div class="brand-lockup"><div class="brand-mark">M</div><div><div class="brand-name">MECHGUARD AI</div><div class="brand-sub">MAINTENANCE INTELLIGENCE</div></div></div>
     <div class="top-rule"></div>
-    <div class="hero"><div class="hero-kicker">ENGINEERING INSIGHT · OPERATIONAL CLARITY</div><h1>Know your machines.<br>Act with confidence.</h1><p>A focused maintenance workspace for turning sensor readings into clear diagnostics, historical context, and prioritised next steps.</p><span class="pill">Local-first&nbsp; · &nbsp;Explainable&nbsp; · &nbsp;No paid APIs</span></div>
     ''', unsafe_allow_html=True)
-    left, right = st.columns([1.05, .95], gap="large", vertical_alignment="top")
-    with left:
-        st.markdown('<div class="section-eyebrow">BUILT FOR CLARITY</div><h2>Maintenance decisions, backed by evidence.</h2><p class="muted">Everything important, without the dashboard clutter.</p>', unsafe_allow_html=True)
+
+    # Keep the product message and sign-in form side by side at the top.
+    intro, auth = st.columns([1.15, .85], gap="large", vertical_alignment="top")
+    with intro:
         st.markdown('''
-        <div class="feature-card"><div class="feature-icon">⌁</div><h3>Explainable diagnostics</h3><p>See which checks ran, what they found, and how the agent reached its recommendation.</p></div>
-        <div style="height:2px"></div>
-        <div class="feature-card"><div class="feature-icon">◷</div><h3>Machine history</h3><p>Compare readings over time and surface changes that may deserve attention.</p></div>
-        <div style="height:2px"></div>
-        <div class="feature-card"><div class="feature-icon">↗</div><h3>Sensor data, in one place</h3><p>Import CSV readings and use the same diagnostic workflow to assess them.</p></div>
+        <div class="hero hero-compact">
+          <div class="hero-kicker">ENGINEERING INSIGHT · OPERATIONAL CLARITY</div>
+          <h1>Know your machines.<br>Act with confidence.</h1>
+          <p>A focused maintenance workspace for turning sensor readings into clear diagnostics, historical context, and prioritised next steps.</p>
+          <span class="pill">Local-first&nbsp; · &nbsp;Explainable&nbsp; · &nbsp;No paid APIs</span>
+        </div>
         ''', unsafe_allow_html=True)
-        st.caption("Educational prototype. Thresholds are illustrative, not real-world machine safety limits.")
-    with right:
-        with st.container():
-            st.markdown('<div class="section-eyebrow">YOUR WORKSPACE</div><h2>Welcome to MechGuard</h2><p class="muted">Sign in or create a local demo account to continue.</p>', unsafe_allow_html=True)
-            mode = st.radio("Account", ["Sign in", "Create account"], horizontal=True, key="auth_mode", label_visibility="collapsed")
-            with st.form("auth_form", clear_on_submit=False):
-                username = st.text_input("Username", placeholder="Enter your username")
-                password = st.text_input("Password", type="password", placeholder="Enter your password")
-                confirm = ""
-                if mode == "Create account":
-                    confirm = st.text_input("Confirm password", type="password", placeholder="Re-enter your password")
-                    st.caption("Use 3–24 characters for the username and at least 8 characters for the password.")
-                submitted = st.form_submit_button("Sign in" if mode == "Sign in" else "Create account", type="primary", use_container_width=True)
-            if submitted:
-                if mode == "Create account":
-                    if password != confirm:
-                        st.error("Passwords do not match.")
-                    else:
-                        ok, message = register_user(username, password)
-                        if ok:
-                            st.success(message + " Switch to Sign in to continue.")
-                        else:
-                            st.error(message)
+
+    with auth:
+        st.markdown('<div class="auth-panel"><div class="section-eyebrow">YOUR WORKSPACE</div><h2>Welcome to MechGuard</h2><p class="muted">Sign in or create a local demo account to continue.</p></div>', unsafe_allow_html=True)
+        mode = st.radio("Account", ["Sign in", "Create account"], horizontal=True, key="auth_mode", label_visibility="collapsed")
+        with st.form("auth_form", clear_on_submit=False):
+            username = st.text_input("Username", placeholder="Enter your username")
+            password = st.text_input("Password", type="password", placeholder="Enter your password")
+            confirm = ""
+            if mode == "Create account":
+                confirm = st.text_input("Confirm password", type="password", placeholder="Re-enter your password")
+                st.caption("Username: 3–24 characters. Password: at least 8 characters.")
+            submitted = st.form_submit_button("Sign in" if mode == "Sign in" else "Create account", type="primary", use_container_width=True)
+        if submitted:
+            if mode == "Create account":
+                if password != confirm:
+                    st.error("Passwords do not match.")
                 else:
-                    if verify_user(username, password):
-                        with db() as conn:
-                            row = conn.execute("SELECT username FROM users WHERE username = ? COLLATE NOCASE", (username.strip(),)).fetchone()
-                        st.session_state.auth_user = row[0]
-                        st.session_state.page = "Overview"
-                        st.session_state.nav_radio = "Overview"
-                        st.session_state.latest_report = None
-                        st.session_state.latest_report_user = row[0]
-                        st.rerun()
+                    ok, message = register_user(username, password)
+                    if ok:
+                        st.success(message + " Switch to Sign in to continue.")
                     else:
-                        st.error("Incorrect username or password.")
-            st.caption("Local classroom authentication. Not intended for production multi-user security.")
+                        st.error(message)
+            else:
+                if verify_user(username, password):
+                    with db() as conn:
+                        row = conn.execute("SELECT username FROM users WHERE username = ? COLLATE NOCASE", (username.strip(),)).fetchone()
+                    st.session_state.auth_user = row[0]
+                    st.session_state.page = "Overview"
+                    st.session_state.nav_radio = "Overview"
+                    st.session_state.latest_report = None
+                    st.session_state.latest_report_user = row[0]
+                    st.rerun()
+                else:
+                    st.error("Incorrect username or password.")
+        st.caption("Local classroom authentication. Not intended for production multi-user security.")
+
+    st.markdown('<div class="top-rule"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-eyebrow">BUILT FOR CLARITY</div><h2>Maintenance decisions, backed by evidence.</h2>', unsafe_allow_html=True)
+    f1, f2, f3 = st.columns(3, gap="large")
+    with f1:
+        st.markdown('<div class="feature-card"><h3>Explainable diagnostics</h3><p>See which checks ran, what they found, and why an action was recommended.</p></div>', unsafe_allow_html=True)
+    with f2:
+        st.markdown('<div class="feature-card"><h3>Machine history</h3><p>Compare saved readings and identify changes that deserve attention.</p></div>', unsafe_allow_html=True)
+    with f3:
+        st.markdown('<div class="feature-card"><h3>Sensor data, in one place</h3><p>Import CSV readings and use the same diagnostic workflow to assess them.</p></div>', unsafe_allow_html=True)
+    st.caption("Educational prototype. Thresholds are illustrative, not real-world machine safety limits.")
 
 
 def app_topnav():
