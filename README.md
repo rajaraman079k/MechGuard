@@ -1,8 +1,4 @@
-Here is a polished, professional **README.md** tailored for GitHub. It includes dynamic visual badges, clean navigation, clear architectural breakdowns, and structured formatting to present your project effectively for academic evaluations, vivas, or portfolio showcases.
 
----
-
-```markdown
 # MechGuard AI 🛠️🤖
 
 > **Explainable, Local-First Machine Maintenance Decision Support**
