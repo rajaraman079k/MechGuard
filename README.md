@@ -1,4 +1,4 @@
-MechGuard AI
+*MechGuard AI*
 Explainable, local-first machine maintenance decision support
 MechGuard AI is an educational Agentic AI course project that turns machine readings into an explainable maintenance assessment. It combines deterministic diagnostic tools, a planning/evaluation workflow, historical context, and a Streamlit interface.
 Safety note: This is a classroom prototype. Its thresholds are illustrative, not universal machine safety limits. Do not use its outputs as a substitute for manufacturer guidance, qualified engineering judgement, or site safety procedures.
