@@ -404,14 +404,16 @@ def inject_theme(theme):
     .stButton button[kind="primary"], .stFormSubmitButton button[kind="primary"] {{ background:{accent}; color:#101114; border:1px solid {accent}; box-shadow:none; }}
     .stButton button:hover, .stDownloadButton button:hover {{ border-color:{accent}; }}
     div[data-baseweb="input"] input, div[data-baseweb="select"] > div, textarea {{ border-radius:10px; background:{input_bg}; }}
-    /* Horizontal navigation tabs: native Streamlit radio controls, styled as a clean tab strip. */
-    div[data-testid="stRadio"] {{ margin:.1rem 0 .25rem; }}
-    div[data-testid="stRadio"] > div {{ gap:.25rem; align-items:stretch; border-bottom:1px solid {border}; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:thin; }}
-    div[data-testid="stRadio"] label {{ flex:0 0 auto; border:0 !important; border-bottom:2px solid transparent !important; border-radius:0 !important; padding:.75rem .95rem !important; background:transparent !important; transition:color .15s ease,border-color .15s ease; cursor:pointer; }}
-    div[data-testid="stRadio"] label > div:first-child {{ display:none !important; }}
-    div[data-testid="stRadio"] label:has(input:checked) {{ border-bottom-color:{accent} !important; color:{accent} !important; font-weight:750; }}
-    div[data-testid="stRadio"] label:hover {{ color:{accent} !important; }}
-    div[data-testid="stRadio"] label p {{ margin:0; white-space:nowrap; }}
+    /* Minimal text-button navigation: no radio indicators or pill-shaped controls. */
+    .nav-tabs-row {{ border-bottom:1px solid {border}; padding-bottom:0; margin:.15rem 0 .3rem; }}
+    .nav-tabs-row div[data-testid="stButton"] {{ margin:0; }}
+    .nav-tabs-row div[data-testid="stButton"] button {{
+        background:transparent !important; border:0 !important; border-bottom:2px solid transparent !important;
+        border-radius:0 !important; box-shadow:none !important; padding:.78rem .8rem !important;
+        min-height:2.7rem; color:{muted} !important; white-space:nowrap; font-weight:600;
+    }}
+    .nav-tabs-row div[data-testid="stButton"] button:hover {{ color:{text} !important; background:transparent !important; border-bottom-color:{border} !important; }}
+    .nav-tabs-row div[data-testid="stButton"] button[kind="primary"] {{ color:{accent} !important; border-bottom-color:{accent} !important; font-weight:750; }}
     .stAlert {{ border-radius:12px; border:1px solid {border}; }}
     [data-testid="stExpander"] {{ border:0; border-top:1px solid {border}; border-radius:0; background:transparent; }}
     hr {{ border-color:{border}; opacity:.8; }}
@@ -527,19 +529,20 @@ def app_topnav():
             if st.button("Sign out", key="top_signout", use_container_width=True):
                 st.session_state.auth_user = None
                 st.session_state.page = "Overview"
-                st.session_state.nav_radio = "Overview"
                 st.session_state.latest_report = None
                 st.session_state.latest_report_user = None
                 st.rerun()
     st.markdown('<div class="top-rule"></div>', unsafe_allow_html=True)
-    # The radio widget is the source of truth for navigation. Do not overwrite its
-    # value from the previous page on every rerun, or clicks will appear to do nothing.
-    selected = st.radio(
-        "Main navigation", pages, horizontal=True, key="nav_radio",
-        label_visibility="collapsed"
-    )
-    if selected != st.session_state.page:
-        st.session_state.page = selected
+    # Each page is a real button tab; no radio circles are rendered.
+    st.markdown('<div class="nav-tabs-row">', unsafe_allow_html=True)
+    nav_cols = st.columns([1.0, 1.35, 1.25, 1.05, 1.0, 1.8], gap="small")
+    for i, page_name in enumerate(pages):
+        with nav_cols[i]:
+            if st.button(page_name, key=f"nav_tab_{i}", use_container_width=True,
+                         type="primary" if st.session_state.page == page_name else "secondary"):
+                st.session_state.page = page_name
+                st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('<div class="top-rule" style="margin-top:.35rem;margin-bottom:1.2rem"></div>', unsafe_allow_html=True)
 
 
