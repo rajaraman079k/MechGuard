@@ -148,72 +148,194 @@ def usage_tool(hours):
     return {"tool":"Usage/service analysis", "status":status, "score":score, "finding":finding, "action":action}
 
 def run_agent(machine, temp, vibration, hours, historical_context=None):
-    trace = ["GOAL: Assess machine condition and prepare an explainable maintenance action plan."]
-    plan = []
-    if temp >= TEMP_WARN:
-        plan.append(("thermal_tool", lambda: thermal_tool(temp)))
-        trace.append("PLAN: Prioritize thermal analysis because temperature is elevated.")
-    if vibration >= VIB_WARN:
-        plan.append(("vibration_tool", lambda: vibration_tool(vibration)))
-        trace.append("PLAN: Prioritize vibration analysis because vibration is elevated.")
+    """Run an explainable, deterministic tool-using agent with adaptive replanning.
+
+    This is agentic workflow logic, not an LLM or trained prediction model.
+    The planner selects tools from the current evidence, evaluates findings,
+    and can add cross-checks when the first pass reveals a reason to investigate.
+    """
+    historical_context = historical_context or {}
+    trace = ["GOAL: Assess machine condition and produce an evidence-based maintenance plan."]
+    tools = {
+        "thermal_tool": lambda: thermal_tool(temp),
+        "vibration_tool": lambda: vibration_tool(vibration),
+        "usage_tool": lambda: usage_tool(hours),
+    }
+    selected = []
+
+    # Initial plan: choose tools from current sensor values and remembered trends.
+    if temp >= TEMP_WARN or historical_context.get("temperature_rising"):
+        selected.append("thermal_tool")
+        trace.append("PLAN: Select thermal analysis because temperature is elevated or rising against history.")
+    if vibration >= VIB_WARN or historical_context.get("vibration_rising"):
+        selected.append("vibration_tool")
+        trace.append("PLAN: Select vibration analysis because vibration is elevated or rising against history.")
     if hours >= SERVICE_HOURS:
-        plan.append(("usage_tool", lambda: usage_tool(hours)))
-        trace.append("PLAN: Prioritize service-interval analysis because maintenance is due.")
-    scheduled = {name for name, _ in plan}
-    for name, fn in [
-        ("thermal_tool", lambda: thermal_tool(temp)),
-        ("vibration_tool", lambda: vibration_tool(vibration)),
-        ("usage_tool", lambda: usage_tool(hours))
-    ]:
-        if name not in scheduled:
-            plan.append((name, fn))
-            trace.append(f"PLAN: Add {name} as a baseline cross-check.")
-    results = []
-    for _, fn in plan:
-        r = fn()
-        results.append(r)
-        trace.append(f"TOOL: {r['tool']} returned {r['status']} (score {r['score']}).")
+        selected.append("usage_tool")
+        trace.append("PLAN: Select service analysis because the demo service interval has been reached.")
+
+    if not selected:
+        selected = ["thermal_tool", "vibration_tool"]
+        trace.append("PLAN: No trigger found; run thermal and vibration baseline checks. Skip service analysis because its interval is not due.")
+
+    results_by_tool = {}
+
+    def execute(tool_name, reason):
+        if tool_name in results_by_tool:
+            return
+        result = tools[tool_name]()
+        results_by_tool[tool_name] = result
+        trace.append(f"TOOL: {result['tool']} returned {result['status']} (score {result['score']}). Reason: {reason}")
+
+    for name in selected:
+        execute(name, "selected by the initial plan")
+
+    # Evaluate the first pass and replan only when findings justify more work.
+    first_pass = list(results_by_tool.values())
+    first_critical = any(r["status"] == "CRITICAL" for r in first_pass)
+    first_abnormal = any(r["status"] in ("WARNING", "SERVICE DUE", "CRITICAL") for r in first_pass)
+    trend_warning = bool(historical_context.get("trend_warning"))
+
+    if first_critical:
+        trace.append("EVALUATE: Critical evidence found in the first pass.")
+        trace.append("REPLAN: Expand to all remaining diagnostic tools for a combined inspection view.")
+        for name in ("thermal_tool", "vibration_tool", "usage_tool"):
+            execute(name, "critical finding requires a broader cross-check")
+    elif first_abnormal:
+        trace.append("EVALUATE: At least one abnormal indicator was found.")
+        complementary = []
+        if "thermal_tool" in results_by_tool and "vibration_tool" not in results_by_tool:
+            complementary.append("vibration_tool")
+        if "vibration_tool" in results_by_tool and "thermal_tool" not in results_by_tool:
+            complementary.append("thermal_tool")
+        if complementary:
+            trace.append("REPLAN: Add a complementary sensor check to see whether the abnormality is isolated or combined.")
+            for name in complementary:
+                execute(name, "cross-check an abnormal sensor finding")
+        if trend_warning:
+            trace.append("REPLAN: Historical deterioration is present; ensure both thermal and vibration checks are included.")
+            for name in ("thermal_tool", "vibration_tool"):
+                execute(name, "cross-check a rising historical trend")
+    elif trend_warning:
+        trace.append("EVALUATE: Current thresholds look normal, but machine memory indicates deterioration.")
+        trace.append("REPLAN: Run both sensor checks because change over time may matter before a fixed threshold is crossed.")
+        for name in ("thermal_tool", "vibration_tool"):
+            execute(name, "investigate a rising historical trend")
+    else:
+        trace.append("EVALUATE: Initial findings are within configured demo thresholds; no extra diagnostic pass is needed.")
+
+    results = list(results_by_tool.values())
     critical = sum(r["status"] == "CRITICAL" for r in results)
     abnormal = sum(r["status"] in ("WARNING", "SERVICE DUE") for r in results)
     score = sum(r["score"] for r in results)
+
     if critical >= 1 or score >= 5:
         severity = "HIGH"
-        summary = "High-priority maintenance assessment required."
-        action = "1. Follow site safety procedures. 2. Have qualified personnel assess the machine. 3. Do not restart equipment judged unsafe by qualified staff. 4. Record findings and recheck after approved corrective work."
-    elif abnormal >= 1 or score >= 2:
+        summary = "High-priority maintenance assessment required based on the configured demo rules."
+        action = ("1. Follow site safety procedures. 2. Have qualified personnel assess the machine. "
+                  "3. Do not restart equipment judged unsafe by qualified staff. "
+                  "4. Record findings and recheck after approved corrective work.")
+    elif abnormal >= 1 or score >= 2 or trend_warning:
         severity = "MEDIUM"
-        summary = "Abnormal or due-for-service indicators found; inspection is recommended."
-        action = "1. Schedule an inspection. 2. Check items listed by diagnostic tools. 3. Compare readings with machine-specific baselines and manufacturer guidance. 4. Repeat measurements under comparable conditions."
+        summary = "Abnormal indicators or a notable historical trend were found; inspection is recommended."
+        action = ("1. Schedule an inspection. 2. Check the diagnostic findings listed above. "
+                  "3. Compare readings with machine-specific baselines and manufacturer guidance. "
+                  "4. Repeat measurements under comparable conditions.")
     else:
         severity = "LOW"
-        summary = "No configured demo warning thresholds were exceeded."
-        action = "1. Continue routine monitoring. 2. Maintain a service log. 3. Compare future readings with machine-specific baselines."
-    if critical and abnormal:
-        trace.append("EVALUATE: Critical evidence and another abnormal indicator coexist.")
-        trace.append("REPLAN: Prioritize a combined inspection instead of treating alerts independently.")
-        action = "1. Prioritize a combined inspection. 2. Follow site safety procedures. 3. Qualified personnel decide whether operation can continue. 4. Inspect thermal, vibration, and service-history factors together."
-    elif historical_context and historical_context.get("trend_warning"):
-        trace.append("MEMORY: Recent saved readings indicate a notable increase.")
-        trace.append("REPLAN: Add historical trend review to the maintenance action plan.")
-        action += " 5. Review historical trends and investigate persistent increases."
-    elif historical_context:
-        trace.append("MEMORY: Historical context checked; no configured rising-trend trigger was detected.")
-    trace.append(f"OUTPUT: Final severity = {severity}; report generated.")
-    return {"timestamp":datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "machine":machine,
-            "temperature":float(temp), "vibration":float(vibration), "hours":int(hours),
-            "severity":severity, "risk_score":int(score), "summary":summary, "action_plan":action,
-            "results":results, "trace":trace}
+        summary = "No configured demo warning thresholds or notable historical trend were detected by the checks run."
+        action = ("1. Continue routine monitoring. 2. Maintain a service log. "
+                  "3. Compare future readings with machine-specific baselines.")
+
+    if critical and (abnormal or len(results) > 1):
+        trace.append("EVALUATE: Critical evidence coexists with other diagnostic evidence.")
+        trace.append("DECISION: Prioritize a combined inspection instead of treating alerts independently.")
+        action = ("1. Prioritize a combined inspection. 2. Follow site safety procedures. "
+                  "3. Qualified personnel decide whether operation can continue. "
+                  "4. Inspect thermal, vibration, and service-history factors together.")
+
+    if historical_context.get("sample_count", 0):
+        trace.append(
+            "MEMORY: Compared this assessment with "
+            f"{historical_context['sample_count']} recent saved assessment(s) for this machine."
+        )
+        if trend_warning:
+            trace.append(
+                "MEMORY: Historical change detected — "
+                f"temperature delta {historical_context.get('temperature_delta', 0):+.1f} °C; "
+                f"vibration delta {historical_context.get('vibration_delta', 0):+.1f} mm/s."
+            )
+            action += " Review the historical trend and investigate persistent increases."
+    else:
+        trace.append("MEMORY: No usable prior assessments for this machine; this report uses current readings only.")
+
+    trace.append(f"OUTPUT: Final severity = {severity}; {len(results)} diagnostic tool(s) executed.")
+    return {
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "machine": machine,
+        "temperature": float(temp),
+        "vibration": float(vibration),
+        "hours": int(hours),
+        "severity": severity,
+        "risk_score": int(score),
+        "summary": summary,
+        "action_plan": action,
+        "results": results,
+        "trace": trace,
+    }
+
 
 def trend_context(history, machine, temp, vibration):
-    if history.empty:
-        return {"trend_warning":False}
-    h = history[history["machine"] == machine].sort_values("id")
-    if len(h) < 2:
-        return {"trend_warning":False}
-    recent = h.tail(5)
-    old = recent.iloc[0]
-    return {"trend_warning": (temp - float(old["temperature"]) >= 5) or
-                              (vibration - float(old["vibration"]) >= 1)}
+    """Compare current readings with recent saved readings for this machine."""
+    empty = {
+        "trend_warning": False,
+        "temperature_rising": False,
+        "vibration_rising": False,
+        "temperature_delta": 0.0,
+        "vibration_delta": 0.0,
+        "sample_count": 0,
+    }
+    if history.empty or "machine" not in history.columns:
+        return empty
+
+    machine_history = history[history["machine"].astype(str) == str(machine)].copy()
+    if machine_history.empty:
+        return empty
+
+    # History is often loaded newest-first; sort oldest-first before taking the recent baseline.
+    if "id" in machine_history.columns:
+        machine_history = machine_history.sort_values("id")
+    recent = machine_history.tail(5)
+    if recent.empty:
+        return empty
+
+    temp_values = pd.to_numeric(recent["temperature"], errors="coerce").dropna()
+    vib_values = pd.to_numeric(recent["vibration"], errors="coerce").dropna()
+    if temp_values.empty or vib_values.empty:
+        return empty
+
+    # Median baselines are less sensitive to a single unusual historical reading.
+    temp_baseline = float(temp_values.median())
+    vib_baseline = float(vib_values.median())
+    temp_delta = float(temp) - temp_baseline
+    vib_delta = float(vibration) - vib_baseline
+
+    # Also flag a simple three-reading monotonic rise when there is enough history.
+    temp_recent_rise = len(temp_values) >= 3 and temp_values.tail(3).is_monotonic_increasing and temp_values.iloc[-1] > temp_values.iloc[0]
+    vib_recent_rise = len(vib_values) >= 3 and vib_values.tail(3).is_monotonic_increasing and vib_values.iloc[-1] > vib_values.iloc[0]
+    temperature_rising = temp_delta >= 5.0 or bool(temp_recent_rise)
+    vibration_rising = vib_delta >= 1.0 or bool(vib_recent_rise)
+
+    return {
+        "trend_warning": temperature_rising or vibration_rising,
+        "temperature_rising": temperature_rising,
+        "vibration_rising": vibration_rising,
+        "temperature_delta": temp_delta,
+        "vibration_delta": vib_delta,
+        "sample_count": int(min(len(temp_values), len(vib_values))),
+        "temperature_baseline": temp_baseline,
+        "vibration_baseline": vib_baseline,
+    }
 
 # ---------- Theme and UI ----------
 if "theme" not in st.session_state:
@@ -295,6 +417,8 @@ def show_auth_page():
                         row = conn.execute("SELECT username FROM users WHERE username = ? COLLATE NOCASE", (username.strip(),)).fetchone()
                     st.session_state.auth_user = row[0]
                     st.session_state.page = "Home"
+                    st.session_state.latest_report = None
+                    st.session_state.latest_report_user = row[0]
                     st.rerun()
                 else:
                     st.error("Incorrect username or password.")
@@ -321,6 +445,8 @@ def app_sidebar():
         if st.button("Sign out", use_container_width=True):
             st.session_state.auth_user = None
             st.session_state.page = "Home"
+            st.session_state.latest_report = None
+            st.session_state.latest_report_user = None
             st.rerun()
         st.caption("Local processing · No paid API")
 
@@ -367,13 +493,18 @@ def workspace_page(username):
         hours = c2.number_input("Operating hours since service", 0, 100000, 420, 10)
         run = st.form_submit_button("Run agent assessment", type="primary", use_container_width=True)
     if run:
-        hist = load_history(username)
-        context = trend_context(hist, machine, temp, vibration)
-        report = run_agent(machine, temp, vibration, hours, context)
-        save_assessment(report, username)
-        st.session_state.latest_report = report
-        st.success("Assessment saved to your local machine memory.")
-    report = st.session_state.get("latest_report")
+        machine = machine.strip()
+        if not machine:
+            st.error("Enter a machine ID or name before running an assessment.")
+        else:
+            hist = load_history(username)
+            context = trend_context(hist, machine, temp, vibration)
+            report = run_agent(machine, temp, vibration, hours, context)
+            save_assessment(report, username)
+            st.session_state.latest_report = report
+            st.session_state.latest_report_user = username
+            st.success("Assessment saved to your local machine memory.")
+    report = st.session_state.get("latest_report") if st.session_state.get("latest_report_user") == username else None
     if report:
         st.divider()
         st.subheader(f"Latest assessment · {report['machine']}")
@@ -452,6 +583,7 @@ def csv_trends_page(username):
                         report = run_agent(str(row["machine"]), float(row["temperature"]), float(row["vibration"]), int(row["operating_hours"]), context)
                         save_assessment(report, username)
                         st.session_state.latest_report = report
+                        st.session_state.latest_report_user = username
                         st.success(f"Assessment saved: {report['severity']}. Open Agent workspace to view full details.")
         except Exception as e:
             st.error(f"Unable to read CSV: {e}")
@@ -477,10 +609,11 @@ def guide_page():
     ### Agent architecture
     **Goal → Planner → Diagnostic tools → Evaluator → Feedback/replanning → Action plan**
 
-    - **Planner:** prioritizes relevant tools based on current sensor readings, then adds cross-checks.
+    - **Planner:** selects diagnostic tools from current readings and remembered trends.
     - **Tools:** thermal, vibration, and usage/service diagnostics.
-    - **Evaluator:** combines tool scores and severity signals.
-    - **Feedback:** can elevate combined inspection priority and incorporate historical trend context.
+    - **Evaluator:** checks first-pass findings and decides whether more checks are justified.
+    - **Replanning:** adds complementary checks for abnormal findings or expands the investigation after critical evidence.
+    - **Memory:** recent machine-specific readings can trigger trend investigation before fixed thresholds are crossed.
     - **Memory:** SQLite stores assessments locally, separated by username.
     - **Security note:** passwords are salted and hashed locally. This is a classroom demo, not enterprise-grade authentication.
     - **No paid APIs:** all logic runs locally in Python.
