@@ -1,109 +1,96 @@
-    st.markdown('<div class="page-header"><div class="section-eyebrow">HISTORY / CONTEXT</div><h1>Machine memory</h1><p>Explore saved assessments and compare machine conditions over time.</p></div>', unsafe_allow_html=True)
-    hist = load_history(username)
-    if hist.empty:
-        st.info("No assessments yet. Run one in Agent workspace.")
-        return
-    machines = ["All machines"] + sorted(hist["machine"].dropna().unique().tolist())
-    selected = st.selectbox("Filter by machine", machines)
-    filtered = load_history(username, selected)
-    x,y,z = st.columns(3)
-    x.metric("Saved assessments", len(filtered))
-    y.metric("Machines", filtered["machine"].nunique())
-    z.metric("High priority", int((filtered["severity"] == "HIGH").sum()))
-    st.dataframe(filtered[["timestamp","machine","temperature","vibration","operating_hours","severity","risk_score"]],
-                 use_container_width=True, hide_index=True)
-    st.download_button("Download history CSV", filtered.to_csv(index=False), "mechguard_history.csv", "text/csv")
+import streamlit as st
+import pandas as pd
+import sqlite3
+import json
+import hashlib
+import hmac
+import secrets
+from datetime import datetime
+from pathlib import Path
 
-def csv_trends_page(username):
-    st.markdown('<div class="page-header"><div class="section-eyebrow">DATA / MONITORING</div><h1>CSV & trends</h1><p>Bring sensor readings into the workspace and explore historical patterns.</p></div>', unsafe_allow_html=True)
-    uploaded = st.file_uploader("Upload sensor CSV", type=["csv"], key="csv_upload")
-    st.markdown("Required columns: `machine`, `temperature`, `vibration`, `operating_hours`.")
-    sample = pd.DataFrame([
-        {"machine":"Pump-M01","temperature":68,"vibration":3.0,"operating_hours":420},
-        {"machine":"Pump-M01","temperature":80,"vibration":5.2,"operating_hours":600},
-        {"machine":"Pump-M01","temperature":96,"vibration":8.0,"operating_hours":1200},
-    ])
-    st.download_button("Download sample CSV", sample.to_csv(index=False), "mechguard_sample.csv", "text/csv")
-    if uploaded:
-        try:
-            data = pd.read_csv(uploaded)
-            data.columns = [c.strip().lower().replace(" ","_") for c in data.columns]
-            aliases = {"machine_id":"machine","temperature_c":"temperature","temp_c":"temperature",
-                       "vibration_mm_s_rms":"vibration","hours":"operating_hours"}
-            data = data.rename(columns={k:v for k,v in aliases.items() if k in data.columns})
-            required = {"machine","temperature","vibration","operating_hours"}
-            if not required.issubset(data.columns):
-                st.error("Missing required columns. Download the sample CSV to see the expected format.")
-            else:
-                for col in ["temperature","vibration","operating_hours"]:
-                    data[col] = pd.to_numeric(data[col], errors="coerce")
-                data = data.dropna(subset=["machine","temperature","vibration","operating_hours"])
-                data = data[(data.temperature.between(0,200)) & (data.vibration.between(0,100)) & (data.operating_hours >= 0)]
-                if data.empty:
-                    st.error("No valid rows found.")
-                else:
-                    st.success(f"Loaded {len(data)} valid row(s).")
-                    st.dataframe(data, use_container_width=True, hide_index=True)
-                    if st.button("Analyse latest CSV row", type="primary"):
-                        row = data.iloc[-1]
-                        hist = load_history(username)
-                        context = trend_context(hist, str(row["machine"]), float(row["temperature"]), float(row["vibration"]))
-                        report = run_agent(str(row["machine"]), float(row["temperature"]), float(row["vibration"]), int(row["operating_hours"]), context)
-                        save_assessment(report, username)
-                        st.session_state.latest_report = report
-                        st.session_state.latest_report_user = username
-                        st.success(f"Assessment saved: {report['severity']}. Open Agent workspace to view full details.")
-        except Exception as e:
-            st.error(f"Unable to read CSV: {e}")
-    st.divider()
-    hist = load_history(username)
-    if not hist.empty:
-        machine = st.selectbox("Machine trend", sorted(hist["machine"].dropna().unique().tolist()))
-        h = hist[hist["machine"] == machine].sort_values("id")
-        if len(h) >= 2:
-            l,r = st.columns(2)
-            with l:
-                st.markdown("**Temperature trend (°C)**")
-                st.line_chart(h.set_index("timestamp")[["temperature"]])
-            with r:
-                st.markdown("**Vibration trend (mm/s RMS)**")
-                st.line_chart(h.set_index("timestamp")[["vibration"]])
-        else:
-            st.info("Run at least two assessments for the same machine to display trend charts.")
+APP_DIR = Path(__file__).resolve().parent
+DB_PATH = APP_DIR / "mechguard_history.db"
 
-def guide_page():
-    st.markdown('<div class="page-header"><div class="section-eyebrow">DOCUMENTATION</div><h1>System guide</h1><p>Understand the workflow, design decisions and current limitations.</p></div>', unsafe_allow_html=True)
-    st.markdown("""
-    ### Agent architecture
-    **Goal → Planner → Diagnostic tools → Evaluator → Feedback/replanning → Action plan**
+st.set_page_config(page_title="MechGuard AI | Maintenance Intelligence", page_icon="⚙️", layout="wide", initial_sidebar_state="collapsed")
 
-    - **Planner:** selects diagnostic tools from current readings and remembered trends.
-    - **Tools:** thermal, vibration, and usage/service diagnostics.
-    - **Evaluator:** checks first-pass findings and decides whether more checks are justified.
-    - **Replanning:** adds complementary checks for abnormal findings or expands the investigation after critical evidence.
-    - **Memory:** recent machine-specific readings can trigger trend investigation before fixed thresholds are crossed.
-    - **Memory:** SQLite stores assessments locally, separated by username.
-    - **Security note:** passwords are salted and hashed locally. This is a classroom demo, not enterprise-grade authentication.
-    - **No paid APIs:** all logic runs locally in Python.
+# Educational demo thresholds only. Not real-world safety limits.
+TEMP_WARN, TEMP_CRIT = 75.0, 90.0
+VIB_WARN, VIB_CRIT = 4.5, 7.1
+SERVICE_HOURS = 1000
 
-    ### Important limitations
-    Thresholds are illustrative classroom values, not universal engineering limits. The trend check is a simple heuristic, not a trained forecasting model. The application does not connect to real sensors or control equipment. Use machine-specific manufacturer documentation and qualified personnel for real maintenance decisions.
-    """)
+# ---------- Database / local accounts ----------
+def db():
+    return sqlite3.connect(DB_PATH)
 
-# ---------- Route ----------
-if not st.session_state.auth_user:
-    show_auth_page()
-else:
-    app_topnav()
-    user = st.session_state.auth_user
-    page = st.session_state.page
-    if page == "Overview":
-        home_page(user)
-    elif page == "Agent workspace":
-        workspace_page(user)
-    elif page == "Machine memory":
-        memory_page(user)
-    elif page == "CSV & trends":
-        csv_trends_page(user)
-    else:
-        guide_page()
+def init_db():
+    with db() as conn:
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            username TEXT PRIMARY KEY COLLATE NOCASE,
+            salt TEXT NOT NULL,
+            password_hash TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )""")
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS assessments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            machine TEXT NOT NULL,
+            temperature REAL NOT NULL,
+            vibration REAL NOT NULL,
+            operating_hours INTEGER NOT NULL,
+            severity TEXT NOT NULL,
+            risk_score INTEGER NOT NULL,
+            summary TEXT NOT NULL,
+            action_plan TEXT NOT NULL,
+            trace_json TEXT NOT NULL,
+            username TEXT NOT NULL DEFAULT 'local'
+        )""")
+        # Upgrade databases created by earlier MechGuard versions.
+        cols = [r[1] for r in conn.execute("PRAGMA table_info(assessments)").fetchall()]
+        if "username" not in cols:
+            conn.execute("ALTER TABLE assessments ADD COLUMN username TEXT NOT NULL DEFAULT 'local'")
+
+def hash_password(password, salt_hex=None):
+    salt = bytes.fromhex(salt_hex) if salt_hex else secrets.token_bytes(16)
+    hashed = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 240_000)
+    return salt.hex(), hashed.hex()
+
+def register_user(username, password):
+    username = username.strip()
+    if len(username) < 3 or len(username) > 24:
+        return False, "Username must be 3–24 characters."
+    if not all(c.isalnum() or c in "_-." for c in username):
+        return False, "Use only letters, numbers, dots, underscores, or hyphens."
+    if len(password) < 8:
+        return False, "Password must contain at least 8 characters."
+    salt, digest = hash_password(password)
+    try:
+        with db() as conn:
+            conn.execute("INSERT INTO users(username,salt,password_hash,created_at) VALUES(?,?,?,?)",
+                         (username, salt, digest, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+        return True, "Account created. You can now sign in."
+    except sqlite3.IntegrityError:
+        return False, "That username already exists."
+
+def verify_user(username, password):
+    with db() as conn:
+        row = conn.execute("SELECT username,salt,password_hash FROM users WHERE username = ? COLLATE NOCASE",
+                           (username.strip(),)).fetchone()
+    if not row:
+        return False
+    salt, expected = row[1], row[2]
+    _, actual = hash_password(password, salt)
+    return hmac.compare_digest(actual, expected)
+
+def save_assessment(report, username):
+    with db() as conn:
+        conn.execute("""
+        INSERT INTO assessments
+        (timestamp,machine,temperature,vibration,operating_hours,severity,risk_score,summary,action_plan,trace_json,username)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?)
+        """, (report["timestamp"], report["machine"], report["temperature"], report["vibration"],
+              report["hours"], report["severity"], report["risk_score"], report["summary"],
+              report["action_plan"], json.dumps(report["trace"]), username))
+
+def load_history(username, machine=None, limit=1000):
