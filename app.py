@@ -11,7 +11,7 @@ from pathlib import Path
 APP_DIR = Path(__file__).resolve().parent
 DB_PATH = APP_DIR / "mechguard_history.db"
 
-st.set_page_config(page_title="MechGuard AI", page_icon="⚙️", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="MechGuard AI | Maintenance Intelligence", page_icon="⚙️", layout="wide", initial_sidebar_state="collapsed")
 
 # Educational demo thresholds only. Not real-world safety limits.
 TEMP_WARN, TEMP_CRIT = 75.0, 90.0
@@ -343,135 +343,178 @@ if "theme" not in st.session_state:
 if "auth_user" not in st.session_state:
     st.session_state.auth_user = None
 if "page" not in st.session_state:
-    st.session_state.page = "Home"
+    st.session_state.page = "Overview"
 
 def inject_theme(theme):
     if theme == "Dark":
-        bg, panel, card, text, muted, border, accent = "#0B1220", "#111B2E", "#162338", "#EEF4FC", "#9DAEC4", "#273850", "#42D6C5"
+        bg, panel, card, text, muted, border, accent = "#080D18", "#0E1727", "#111E31", "#F1F5FB", "#92A2B8", "#24334A", "#54E0C1"
+        glow = "rgba(84,224,193,.12)"
     else:
-        bg, panel, card, text, muted, border, accent = "#F3F6FA", "#FFFFFF", "#FFFFFF", "#182536", "#64748B", "#DCE4ED", "#087F8C"
+        bg, panel, card, text, muted, border, accent = "#F4F7FB", "#FFFFFF", "#FFFFFF", "#162238", "#68788E", "#DFE6EF", "#087F72"
+        glow = "rgba(8,127,114,.08)"
     st.markdown(f"""
     <style>
     :root {{ color-scheme: {'dark' if theme == 'Dark' else 'light'}; }}
-    .stApp {{ background: {bg}; color: {text}; }}
-    [data-testid="stHeader"] {{ background: {bg}; }}
-    [data-testid="stSidebar"] {{ background: {panel}; border-right: 1px solid {border}; }}
-    [data-testid="stSidebar"] * {{ color: {text}; }}
-    .block-container {{ max-width: 1450px; padding-top: 1.4rem; padding-bottom: 3rem; }}
+    .stApp {{ background: radial-gradient(ellipse at 12% 0%, {glow}, transparent 34%), {bg}; color: {text}; }}
+    [data-testid="stHeader"] {{ background: transparent; }}
+    [data-testid="stSidebar"] {{ display:none; }}
+    .block-container {{ max-width: 1420px; padding-top: 1.2rem; padding-bottom: 4rem; }}
     h1,h2,h3,h4,p,label,li {{ color: {text}; }}
-    .muted {{ color: {muted} !important; }}
-    .hero {{ padding: 2rem 2.2rem; border-radius: 22px; background: linear-gradient(120deg, {panel}, {card}); border: 1px solid {border}; margin-bottom: 1.2rem; }}
-    .hero-kicker {{ color: {accent}; text-transform: uppercase; letter-spacing: .15em; font-size: .78rem; font-weight: 700; }}
-    .hero h1 {{ color: {text}; font-size: clamp(2.1rem,4vw,3.3rem); line-height: 1.1; margin: .5rem 0; }}
-    .hero p {{ color: {muted}; font-size: 1.06rem; max-width: 760px; }}
-    .feature-card {{ background: {card}; border: 1px solid {border}; border-radius: 16px; padding: 1.15rem; min-height: 150px; }}
-    .feature-card h3 {{ margin: .3rem 0 .45rem 0; font-size: 1.05rem; }}
-    .feature-card p {{ color: {muted}; font-size: .92rem; margin: 0; }}
-    .pill {{ display: inline-block; padding: .25rem .65rem; border: 1px solid {border}; border-radius: 99px; color: {accent}; font-size: .8rem; }}
-    div[data-testid="stMetric"] {{ background: {card}; border: 1px solid {border}; border-radius: 14px; padding: 1rem; }}
-    div[data-testid="stMetricLabel"] p {{ color: {muted} !important; }}
-    div[data-testid="stTabs"] button {{ color: {text}; }}
-    div[data-testid="stDataFrame"] {{ border: 1px solid {border}; border-radius: 12px; }}
-    .stButton button, .stDownloadButton button {{ border-radius: 10px; font-weight: 650; }}
-    div[data-baseweb="input"] input, div[data-baseweb="select"] > div, textarea {{ border-radius: 9px; }}
-    .stAlert {{ border-radius: 12px; }}
-    hr {{ border-color: {border}; }}
+    h1 {{ letter-spacing: -.045em; font-weight: 760; }}
+    h2,h3 {{ letter-spacing: -.025em; font-weight: 700; }}
+    p,li {{ line-height: 1.65; }}
+    .muted, .stCaption {{ color: {muted} !important; }}
+    .brand-lockup {{ display:flex; align-items:center; gap:.8rem; padding:.45rem 0 .8rem; }}
+    .brand-mark {{ display:flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:14px; color:#06131A; font-size:1.35rem; font-weight:900; background:linear-gradient(135deg,{accent},#80F0D9); box-shadow:0 8px 26px {glow}; }}
+    .brand-name {{ font-size:1.15rem; line-height:1.2; font-weight:800; letter-spacing:-.035em; color:{text}; }}
+    .brand-sub {{ font-size:.68rem; letter-spacing:.16em; font-weight:750; color:{muted}; margin-top:.2rem; }}
+    .top-rule {{ height:1px; background:linear-gradient(90deg, {accent}, {border} 45%, transparent); opacity:.7; margin:.2rem 0 1rem; }}
+    .hero {{ position:relative; overflow:hidden; padding:clamp(1.5rem,3vw,2.7rem); border-radius:25px; background:linear-gradient(125deg,{panel} 0%,{card} 70%,{panel} 100%); border:1px solid {border}; margin:.8rem 0 1.35rem; box-shadow:0 20px 70px rgba(0,0,0,.10); }}
+    .hero:after {{ content:""; position:absolute; width:290px; height:290px; border-radius:50%; right:-80px; top:-130px; border:1px solid {accent}; opacity:.22; box-shadow:0 0 0 32px {glow},0 0 0 64px {glow}; pointer-events:none; }}
+    .hero-kicker {{ color:{accent}; text-transform:uppercase; letter-spacing:.19em; font-size:.72rem; font-weight:800; }}
+    .hero h1 {{ color:{text}; font-size:clamp(2.2rem,4.8vw,4.1rem); line-height:1.04; margin:.7rem 0 .85rem; max-width:850px; }}
+    .hero p {{ color:{muted}; font-size:1.02rem; max-width:730px; margin-bottom:1.1rem; }}
+    .pill {{ display:inline-flex; align-items:center; gap:.45rem; padding:.38rem .75rem; border:1px solid {border}; border-radius:999px; color:{accent}; font-size:.77rem; font-weight:700; background:{glow}; }}
+    .section-eyebrow {{ color:{accent}; text-transform:uppercase; letter-spacing:.15em; font-size:.7rem; font-weight:800; margin-bottom:.35rem; }}
+    .feature-card {{ background:linear-gradient(150deg,{card},{panel}); border:1px solid {border}; border-radius:18px; padding:1.25rem; min-height:160px; box-shadow:0 8px 28px rgba(0,0,0,.04); transition:transform .18s ease,border-color .18s ease; }}
+    .feature-card h3 {{ margin:.35rem 0 .45rem; font-size:1.02rem; }}
+    .feature-card p {{ color:{muted}; font-size:.9rem; margin:0; }}
+    .feature-icon {{ width:40px; height:40px; display:flex; align-items:center; justify-content:center; border-radius:12px; background:{glow}; color:{accent}; font-size:1.25rem; margin-bottom:.8rem; }}
+    div[data-testid="stMetric"] {{ background:linear-gradient(145deg,{card},{panel}); border:1px solid {border}; border-radius:17px; padding:1.15rem 1.25rem; box-shadow:0 8px 26px rgba(0,0,0,.04); }}
+    div[data-testid="stMetricLabel"] p {{ color:{muted} !important; font-size:.78rem; font-weight:650; }}
+    div[data-testid="stMetricValue"] {{ font-weight:780; letter-spacing:-.04em; }}
+    div[data-testid="stDataFrame"] {{ border:1px solid {border}; border-radius:14px; overflow:hidden; }}
+    .stButton button, .stDownloadButton button, .stFormSubmitButton button {{ border-radius:11px; font-weight:700; min-height:2.65rem; transition:all .18s ease; }}
+    .stButton button[kind="primary"], .stFormSubmitButton button[kind="primary"] {{ border:1px solid {accent}; box-shadow:0 5px 18px {glow}; }}
+    .stButton button:hover, .stDownloadButton button:hover {{ border-color:{accent}; transform:translateY(-1px); }}
+    div[data-baseweb="input"] input, div[data-baseweb="select"] > div, textarea {{ border-radius:10px; }}
+    div[data-testid="stRadio"] > div {{ gap:.35rem; }}
+    div[data-testid="stRadio"] label {{ border:1px solid {border}; border-radius:11px; padding:.45rem .7rem; background:{card}; }}
+    div[data-testid="stRadio"] label:has(input:checked) {{ border-color:{accent}; background:{glow}; }}
+    .stAlert {{ border-radius:13px; border:1px solid {border}; }}
+    [data-testid="stExpander"] {{ border:1px solid {border}; border-radius:14px; background:{card}; }}
+    hr {{ border-color:{border}; opacity:.8; }}
+    .page-header {{ padding:.3rem 0 1rem; }}
+    .page-header p {{ color:{muted}; margin-top:-.25rem; }}
+    .status-dot {{ display:inline-block; width:8px; height:8px; border-radius:50%; background:{accent}; margin-right:.4rem; box-shadow:0 0 0 4px {glow}; }}
+    @media (max-width: 800px) {{ .block-container {{ padding-top:.6rem; }} .hero {{ border-radius:18px; }} .hero:after {{ opacity:.1; }} }}
     </style>
     """, unsafe_allow_html=True)
 
 inject_theme(st.session_state.theme)
 
 def show_auth_page():
-    st.markdown('<div class="hero"><div class="hero-kicker">MECHGUARD · MACHINE INTELLIGENCE</div><h1>Maintenance, made more intelligent.</h1><p>A local decision-support workspace for machine health, diagnostic reasoning, and maintenance history.</p><span class="pill">Offline · Explainable · API-free</span></div>', unsafe_allow_html=True)
-    left, right = st.columns([1.15, 0.85], gap="large")
+    st.markdown("""
+    <div class="brand-lockup"><div class="brand-mark">M</div><div><div class="brand-name">MECHGUARD <span style="color:#54E0C1">AI</span></div><div class="brand-sub">MAINTENANCE INTELLIGENCE PLATFORM</div></div></div>
+    <div class="top-rule"></div>
+    <div class="hero"><div class="hero-kicker">ENGINEERING INSIGHT · OPERATIONAL CLARITY</div><h1>Know your machines.<br>Act before failure.</h1><p>An explainable maintenance workspace that turns sensor readings into structured diagnostics, historical insights, and prioritised maintenance actions.</p><span class="pill">● Local-first&nbsp; &nbsp;·&nbsp; Explainable agent&nbsp; &nbsp;·&nbsp; No paid APIs</span></div>
+    """, unsafe_allow_html=True)
+    left, right = st.columns([1.08, .92], gap="large")
     with left:
-        st.markdown("### Built for the maintenance floor")
-        st.markdown("""
-        <div class="feature-card"><h3>◈ Explainable diagnostics</h3><p>Follow the agent from planning to tool calls, evaluation, and a prioritized action plan.</p></div><br>
-        <div class="feature-card"><h3>◷ Machine memory</h3><p>Keep a local record of assessments and compare trends over time.</p></div><br>
-        <div class="feature-card"><h3>↗ Flexible data</h3><p>Enter readings manually or upload a CSV to run an assessment.</p></div>
-        """, unsafe_allow_html=True)
+        st.markdown('<div class="section-eyebrow">THE WORKSPACE</div><h2>Maintenance decisions, with evidence.</h2>', unsafe_allow_html=True)
+        c1, c2 = st.columns(2, gap="medium")
+        with c1:
+            st.markdown('<div class="feature-card"><div class="feature-icon">⌁</div><h3>Explainable diagnostics</h3><p>Trace tool selection, findings, evaluation and the final action plan.</p></div>', unsafe_allow_html=True)
+        with c2:
+            st.markdown('<div class="feature-card"><div class="feature-icon">◷</div><h3>Machine memory</h3><p>Compare saved readings and flag meaningful changes over time.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div style="height:14px"></div>', unsafe_allow_html=True)
+        c3, c4 = st.columns(2, gap="medium")
+        with c3:
+            st.markdown('<div class="feature-card"><div class="feature-icon">↗</div><h3>CSV & trends</h3><p>Bring sensor datasets into the same diagnostic workflow.</p></div>', unsafe_allow_html=True)
+        with c4:
+            st.markdown('<div class="feature-card"><div class="feature-icon">◈</div><h3>Private workspace</h3><p>Local accounts and username-scoped assessment history.</p></div>', unsafe_allow_html=True)
+        st.markdown('<p class="muted" style="font-size:.8rem;margin-top:1rem">EDUCATIONAL PROTOTYPE · Thresholds are illustrative and not machine safety limits.</p>', unsafe_allow_html=True)
     with right:
-        st.markdown("### Welcome back")
-        mode = st.radio("Account", ["Sign in", "Create account"], horizontal=True, key="auth_mode")
-        with st.form("auth_form", clear_on_submit=False):
-            username = st.text_input("Username", placeholder="e.g. maintenance_team")
-            password = st.text_input("Password", type="password", placeholder="At least 8 characters" if mode == "Create account" else "Your password")
-            confirm = ""
-            if mode == "Create account":
-                confirm = st.text_input("Confirm password", type="password")
-            submitted = st.form_submit_button("Sign in" if mode == "Sign in" else "Create account", type="primary", use_container_width=True)
-        if submitted:
-            if mode == "Create account":
-                if password != confirm:
-                    st.error("Passwords do not match.")
-                else:
-                    ok, message = register_user(username, password)
-                    if ok:
-                        st.success(message + " Switch to Sign in.")
+        with st.container(border=True):
+            st.markdown('<div class="section-eyebrow">GET STARTED</div><h2>Welcome to MechGuard</h2><p class="muted">Sign in to continue or create a local demo account.</p>', unsafe_allow_html=True)
+            mode = st.radio("Account", ["Sign in", "Create account"], horizontal=True, key="auth_mode", label_visibility="collapsed")
+            with st.form("auth_form", clear_on_submit=False):
+                username = st.text_input("Username", placeholder="e.g. maintenance_team")
+                password = st.text_input("Password", type="password", placeholder="At least 8 characters" if mode == "Create account" else "Enter your password")
+                confirm = ""
+                if mode == "Create account":
+                    confirm = st.text_input("Confirm password", type="password", placeholder="Re-enter your password")
+                submitted = st.form_submit_button("Sign in →" if mode == "Sign in" else "Create account →", type="primary", use_container_width=True)
+            if submitted:
+                if mode == "Create account":
+                    if password != confirm:
+                        st.error("Passwords do not match.")
                     else:
-                        st.error(message)
-            else:
-                if verify_user(username, password):
-                    with db() as conn:
-                        row = conn.execute("SELECT username FROM users WHERE username = ? COLLATE NOCASE", (username.strip(),)).fetchone()
-                    st.session_state.auth_user = row[0]
-                    st.session_state.page = "Home"
-                    st.session_state.latest_report = None
-                    st.session_state.latest_report_user = row[0]
-                    st.rerun()
+                        ok, message = register_user(username, password)
+                        if ok:
+                            st.success(message + " Switch to Sign in to continue.")
+                        else:
+                            st.error(message)
                 else:
-                    st.error("Incorrect username or password.")
-        st.caption("Accounts are stored locally on this computer. This is a classroom prototype, not an enterprise identity system.")
+                    if verify_user(username, password):
+                        with db() as conn:
+                            row = conn.execute("SELECT username FROM users WHERE username = ? COLLATE NOCASE", (username.strip(),)).fetchone()
+                        st.session_state.auth_user = row[0]
+                        st.session_state.page = "Overview"
+                        st.session_state.latest_report = None
+                        st.session_state.latest_report_user = row[0]
+                        st.rerun()
+                    else:
+                        st.error("Incorrect username or password.")
+            st.caption("Local classroom authentication. Not intended for production multi-user security.")
 
-def app_sidebar():
-    with st.sidebar:
-        st.markdown("## ⚙️ MechGuard")
-        st.caption("MAINTENANCE INTELLIGENCE")
-        st.divider()
-        st.markdown(f"Signed in as **{st.session_state.auth_user}**")
-        theme = st.radio("Appearance", ["Dark", "Light"], index=0 if st.session_state.theme == "Dark" else 1, horizontal=True, key="theme_radio")
-        if theme != st.session_state.theme:
-            st.session_state.theme = theme
-            st.rerun()
-        st.divider()
-        pages = ["Home", "Agent workspace", "Machine memory", "CSV & trends", "System guide"]
-        for p in pages:
-            if st.button(("⌂  " if p=="Home" else "▸  ") + p, key="nav_"+p, use_container_width=True,
-                         type="primary" if st.session_state.page == p else "secondary"):
-                st.session_state.page = p
+
+def app_topnav():
+    pages = ["Overview", "Agent workspace", "Machine memory", "CSV & trends", "System guide"]
+    if st.session_state.page not in pages:
+        st.session_state.page = "Overview"
+    if st.session_state.get("nav_radio") != st.session_state.page:
+        st.session_state.nav_radio = st.session_state.page
+
+    left, right = st.columns([1.55, 1.0], vertical_alignment="center")
+    with left:
+        st.markdown('<div class="brand-lockup"><div class="brand-mark">M</div><div><div class="brand-name">MECHGUARD <span style="color:#54E0C1">AI</span></div><div class="brand-sub">MAINTENANCE INTELLIGENCE</div></div></div>', unsafe_allow_html=True)
+    with right:
+        a, b, c = st.columns([1.0, 1.0, .85], vertical_alignment="center")
+        with a:
+            st.caption(f"Signed in as **{st.session_state.auth_user}**")
+        with b:
+            theme = st.selectbox("Appearance", ["Dark", "Light"], index=0 if st.session_state.theme == "Dark" else 1, key="theme_select", label_visibility="collapsed")
+            if theme != st.session_state.theme:
+                st.session_state.theme = theme
                 st.rerun()
-        st.divider()
-        if st.button("Sign out", use_container_width=True):
-            st.session_state.auth_user = None
-            st.session_state.page = "Home"
-            st.session_state.latest_report = None
-            st.session_state.latest_report_user = None
-            st.rerun()
-        st.caption("Local processing · No paid API")
+        with c:
+            if st.button("Sign out", key="top_signout", use_container_width=True):
+                st.session_state.auth_user = None
+                st.session_state.page = "Overview"
+                st.session_state.latest_report = None
+                st.session_state.latest_report_user = None
+                st.rerun()
+    st.markdown('<div class="top-rule"></div>', unsafe_allow_html=True)
+    selected = st.radio("Main navigation", pages, horizontal=True, key="nav_radio", label_visibility="collapsed")
+    if selected != st.session_state.page:
+        st.session_state.page = selected
+        st.rerun()
+    st.markdown('<div class="top-rule" style="margin-top:.35rem;margin-bottom:1.2rem"></div>', unsafe_allow_html=True)
+
 
 def home_page(username):
     history = load_history(username)
     total = len(history)
     high = int((history["severity"] == "HIGH").sum()) if total else 0
     machines = int(history["machine"].nunique()) if total else 0
-    st.markdown(f'<div class="hero"><div class="hero-kicker">YOUR MAINTENANCE COMMAND CENTRE</div><h1>Good to see you, {username}.</h1><p>Turn machine readings into explainable maintenance decisions. Start an assessment, review your machine history, or analyse a sensor CSV.</p><span class="pill">● Local workspace ready</span></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="hero"><div class="hero-kicker">YOUR OPERATIONS OVERVIEW</div><h1>Good to see you, {username}.</h1><p>One clear view of machine condition, diagnostic activity and maintenance signals. Start an assessment or explore the evidence behind previous reports.</p><span class="pill">● Workspace operational</span></div>', unsafe_allow_html=True)
     a,b,c = st.columns(3)
     a.metric("Assessments saved", total)
     b.metric("Machines tracked", machines)
     c.metric("High-priority reports", high)
-    st.markdown("### What would you like to do?")
+    st.markdown('<div class="section-eyebrow">QUICK ACTIONS</div><h2>Where would you like to start?</h2>', unsafe_allow_html=True)
     c1,c2,c3 = st.columns(3, gap="medium")
     with c1:
-        st.markdown('<div class="feature-card"><div style="font-size:1.6rem">◈</div><h3>Run diagnostics</h3><p>Analyse temperature, vibration, and service interval indicators.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="feature-card"><div class="feature-icon">◈</div><h3>Run diagnostics</h3><p>Analyse temperature, vibration, and service interval indicators.</p></div>', unsafe_allow_html=True)
         if st.button("Open agent workspace →", key="go_agent", use_container_width=True):
             st.session_state.page = "Agent workspace"; st.rerun()
     with c2:
-        st.markdown('<div class="feature-card"><div style="font-size:1.6rem">◷</div><h3>Review machine memory</h3><p>Explore previous assessments and download your history.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="feature-card"><div class="feature-icon">◷</div><h3>Review machine memory</h3><p>Explore previous assessments and download your history.</p></div>', unsafe_allow_html=True)
         if st.button("View machine memory →", key="go_history", use_container_width=True):
             st.session_state.page = "Machine memory"; st.rerun()
     with c3:
-        st.markdown('<div class="feature-card"><div style="font-size:1.6rem">↗</div><h3>Analyse sensor data</h3><p>Upload a CSV and inspect trends across saved readings.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="feature-card"><div class="feature-icon">↗</div><h3>Analyse sensor data</h3><p>Upload a CSV and inspect trends across saved readings.</p></div>', unsafe_allow_html=True)
         if st.button("Open CSV & trends →", key="go_csv", use_container_width=True):
             st.session_state.page = "CSV & trends"; st.rerun()
     st.markdown("### Recent activity")
@@ -483,8 +526,7 @@ def home_page(username):
     st.caption("Prototype note: demo thresholds are illustrative and should not be used as real-world safety limits.")
 
 def workspace_page(username):
-    st.title("Agent workspace")
-    st.caption("Configure sensor readings and run the diagnostic agent.")
+    st.markdown('<div class="page-header"><div class="section-eyebrow">DIAGNOSTICS / AGENT</div><h1>Agent workspace</h1><p>Configure a machine snapshot and let the agent investigate the evidence.</p></div>', unsafe_allow_html=True)
     with st.form("manual_assessment"):
         c1,c2 = st.columns(2)
         machine = c1.text_input("Machine ID / name", "Pump-M01")
@@ -528,8 +570,7 @@ def workspace_page(username):
         st.download_button("Download assessment report", out.to_csv(index=False), "mechguard_report.csv", "text/csv")
 
 def memory_page(username):
-    st.title("Machine memory")
-    st.caption("Your assessments are stored in a local SQLite database and separated by account.")
+    st.markdown('<div class="page-header"><div class="section-eyebrow">HISTORY / CONTEXT</div><h1>Machine memory</h1><p>Explore saved assessments and compare machine conditions over time.</p></div>', unsafe_allow_html=True)
     hist = load_history(username)
     if hist.empty:
         st.info("No assessments yet. Run one in Agent workspace.")
@@ -546,8 +587,7 @@ def memory_page(username):
     st.download_button("Download history CSV", filtered.to_csv(index=False), "mechguard_history.csv", "text/csv")
 
 def csv_trends_page(username):
-    st.title("CSV & trends")
-    st.caption("Upload readings or visualise trends from your saved assessments.")
+    st.markdown('<div class="page-header"><div class="section-eyebrow">DATA / MONITORING</div><h1>CSV & trends</h1><p>Bring sensor readings into the workspace and explore historical patterns.</p></div>', unsafe_allow_html=True)
     uploaded = st.file_uploader("Upload sensor CSV", type=["csv"], key="csv_upload")
     st.markdown("Required columns: `machine`, `temperature`, `vibration`, `operating_hours`.")
     sample = pd.DataFrame([
@@ -604,7 +644,7 @@ def csv_trends_page(username):
             st.info("Run at least two assessments for the same machine to display trend charts.")
 
 def guide_page():
-    st.title("System guide")
+    st.markdown('<div class="page-header"><div class="section-eyebrow">DOCUMENTATION</div><h1>System guide</h1><p>Understand the workflow, design decisions and current limitations.</p></div>', unsafe_allow_html=True)
     st.markdown("""
     ### Agent architecture
     **Goal → Planner → Diagnostic tools → Evaluator → Feedback/replanning → Action plan**
@@ -626,10 +666,10 @@ def guide_page():
 if not st.session_state.auth_user:
     show_auth_page()
 else:
-    app_sidebar()
+    app_topnav()
     user = st.session_state.auth_user
     page = st.session_state.page
-    if page == "Home":
+    if page == "Overview":
         home_page(user)
     elif page == "Agent workspace":
         workspace_page(user)
