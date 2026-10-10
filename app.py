@@ -370,21 +370,22 @@ def inject_theme(theme):
     .brand-name {{ font-size:1.08rem; line-height:1.2; font-weight:780; letter-spacing:-.035em; color:{text}; }}
     .brand-sub {{ font-size:.65rem; letter-spacing:.13em; font-weight:700; color:{muted}; margin-top:.2rem; }}
     .top-rule {{ height:1px; background:{border}; margin:.25rem 0 1rem; }}
-    .hero {{ padding:clamp(1.5rem,3vw,2.6rem); border-radius:22px; background:{panel}; border:1px solid {border}; margin:.8rem 0 1.4rem; }}
+    .hero {{ padding:1.2rem 0 1.6rem; border-radius:0; background:transparent; border:0; border-bottom:1px solid {border}; margin:.8rem 0 1.5rem; }}
     .hero-kicker {{ color:{accent}; text-transform:uppercase; letter-spacing:.16em; font-size:.7rem; font-weight:800; }}
     .hero h1 {{ color:{text}; font-size:clamp(2.2rem,4.5vw,3.65rem); line-height:1.07; margin:.75rem 0 .9rem; max-width:850px; }}
     .hero p {{ color:{muted}; font-size:1.02rem; max-width:760px; margin-bottom:1.15rem; }}
-    .pill {{ display:inline-flex; align-items:center; gap:.4rem; padding:.4rem .75rem; border:1px solid {border}; border-radius:999px; color:{text}; font-size:.76rem; font-weight:650; background:{card}; }}
+    .pill {{ display:inline-flex; align-items:center; gap:.4rem; padding:.25rem 0; border:0; border-radius:0; color:{muted}; font-size:.76rem; font-weight:600; background:transparent; }}
     .section-eyebrow {{ color:{accent}; text-transform:uppercase; letter-spacing:.14em; font-size:.68rem; font-weight:800; margin-bottom:.4rem; }}
-    .feature-card {{ background:{panel}; border:1px solid {border}; border-radius:16px; padding:1.1rem; min-height:135px; }}
+    .feature-card {{ background:transparent; border:0; border-radius:0; border-bottom:1px solid {border}; padding:.9rem 0 1rem; min-height:0; }}
     .feature-card h3 {{ margin:.3rem 0 .4rem; font-size:1rem; }}
     .feature-card p {{ color:{muted}; font-size:.88rem; margin:0; }}
-    .feature-icon {{ width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:11px; background:{input_bg}; color:{accent}; font-size:1.15rem; margin-bottom:.7rem; }}
-    div[data-testid="stMetric"] {{ background:{panel}; border:1px solid {border}; border-radius:15px; padding:1rem 1.1rem; box-shadow:none; }}
+    .feature-icon {{ display:inline-flex; align-items:center; justify-content:center; width:1.5rem; height:1.5rem; border-radius:0; background:transparent; color:{accent}; font-size:1.05rem; margin-bottom:.35rem; }}
+    div[data-testid="stMetric"] {{ background:transparent; border:0; border-left:1px solid {border}; border-radius:0; padding:.25rem 1rem; box-shadow:none; }}
+    div[data-testid="stHorizontalBlock"]:has(div[data-testid="stMetric"]) {{ padding:.55rem 0 1rem; border-bottom:1px solid {border}; }}
     div[data-testid="stMetricLabel"] p {{ color:{muted} !important; font-size:.78rem; font-weight:650; }}
     div[data-testid="stMetricValue"] {{ font-weight:760; letter-spacing:-.035em; }}
-    div[data-testid="stDataFrame"] {{ border:1px solid {border}; border-radius:12px; overflow:hidden; }}
-    .stButton button, .stDownloadButton button, .stFormSubmitButton button {{ border-radius:10px; font-weight:650; min-height:2.55rem; transition:background .15s ease,border-color .15s ease; }}
+    div[data-testid="stDataFrame"] {{ border:0; border-radius:0; overflow:hidden; }}
+    .stButton button, .stDownloadButton button, .stFormSubmitButton button {{ border-radius:7px; font-weight:600; min-height:2.35rem; transition:background .15s ease,border-color .15s ease; box-shadow:none; }}
     .stButton button[kind="primary"], .stFormSubmitButton button[kind="primary"] {{ background:{accent}; color:#101114; border:1px solid {accent}; box-shadow:none; }}
     .stButton button:hover, .stDownloadButton button:hover {{ border-color:{accent}; }}
     div[data-baseweb="input"] input, div[data-baseweb="select"] > div, textarea {{ border-radius:10px; background:{input_bg}; }}
@@ -397,9 +398,9 @@ def inject_theme(theme):
     div[data-testid="stRadio"] label:hover {{ color:{accent} !important; }}
     div[data-testid="stRadio"] label p {{ margin:0; white-space:nowrap; }}
     .stAlert {{ border-radius:12px; border:1px solid {border}; }}
-    [data-testid="stExpander"] {{ border:1px solid {border}; border-radius:13px; background:{panel}; }}
+    [data-testid="stExpander"] {{ border:0; border-top:1px solid {border}; border-radius:0; background:transparent; }}
     hr {{ border-color:{border}; opacity:.8; }}
-    .page-header {{ padding:.3rem 0 1rem; }}
+    .page-header {{ padding:.3rem 0 1rem; border-bottom:1px solid {border}; margin-bottom:1.2rem; }}
     .page-header p {{ color:{muted}; margin-top:-.25rem; }}
     @media (max-width: 800px) {{ .block-container {{ padding-top:.55rem; }} .hero {{ border-radius:16px; }} div[data-testid="stRadio"] > div {{ overflow-x:auto; }} div[data-testid="stRadio"] label {{ padding:.7rem .75rem !important; }} }}
     </style>
@@ -418,9 +419,9 @@ def show_auth_page():
         st.markdown('<div class="section-eyebrow">BUILT FOR CLARITY</div><h2>Maintenance decisions, backed by evidence.</h2><p class="muted">Everything important, without the dashboard clutter.</p>', unsafe_allow_html=True)
         st.markdown('''
         <div class="feature-card"><div class="feature-icon">⌁</div><h3>Explainable diagnostics</h3><p>See which checks ran, what they found, and how the agent reached its recommendation.</p></div>
-        <div style="height:10px"></div>
+        <div style="height:2px"></div>
         <div class="feature-card"><div class="feature-icon">◷</div><h3>Machine history</h3><p>Compare readings over time and surface changes that may deserve attention.</p></div>
-        <div style="height:10px"></div>
+        <div style="height:2px"></div>
         <div class="feature-card"><div class="feature-icon">↗</div><h3>Sensor data, in one place</h3><p>Import CSV readings and use the same diagnostic workflow to assess them.</p></div>
         ''', unsafe_allow_html=True)
         st.caption("Educational prototype. Thresholds are illustrative, not real-world machine safety limits.")
@@ -502,32 +503,48 @@ def home_page(username):
     total = len(history)
     high = int((history["severity"] == "HIGH").sum()) if total else 0
     machines = int(history["machine"].nunique()) if total else 0
-    st.markdown(f'<div class="hero"><div class="hero-kicker">YOUR OPERATIONS OVERVIEW</div><h1>Good to see you, {username}.</h1><p>One clear view of machine condition, diagnostic activity and maintenance signals. Start an assessment or explore the evidence behind previous reports.</p><span class="pill">● Workspace operational</span></div>', unsafe_allow_html=True)
-    a,b,c = st.columns(3)
-    a.metric("Assessments saved", total)
+
+    st.markdown(
+        f'<div class="hero"><div class="hero-kicker">OPERATIONS OVERVIEW</div>'
+        f'<h1>Good to see you, {username}.</h1>'
+        '<p>Monitor machine condition, review diagnostic evidence, and decide what needs attention next.</p>'
+        '<span class="pill">● Local workspace · Ready</span></div>',
+        unsafe_allow_html=True,
+    )
+
+    a, b, c = st.columns(3)
+    a.metric("Assessments", total)
     b.metric("Machines tracked", machines)
-    c.metric("High-priority reports", high)
-    st.markdown('<div class="section-eyebrow">QUICK ACTIONS</div><h2>Where would you like to start?</h2>', unsafe_allow_html=True)
-    c1,c2,c3 = st.columns(3, gap="medium")
-    with c1:
-        st.markdown('<div class="feature-card"><div class="feature-icon">◈</div><h3>Run diagnostics</h3><p>Analyse temperature, vibration, and service interval indicators.</p></div>', unsafe_allow_html=True)
-        if st.button("Open agent workspace →", key="go_agent", use_container_width=True):
-            st.session_state.page = "Agent workspace"; st.session_state.nav_radio = "Agent workspace"; st.rerun()
-    with c2:
-        st.markdown('<div class="feature-card"><div class="feature-icon">◷</div><h3>Review machine memory</h3><p>Explore previous assessments and download your history.</p></div>', unsafe_allow_html=True)
-        if st.button("View machine memory →", key="go_history", use_container_width=True):
-            st.session_state.page = "Machine memory"; st.session_state.nav_radio = "Machine memory"; st.rerun()
-    with c3:
-        st.markdown('<div class="feature-card"><div class="feature-icon">↗</div><h3>Analyse sensor data</h3><p>Upload a CSV and inspect trends across saved readings.</p></div>', unsafe_allow_html=True)
-        if st.button("Open CSV & trends →", key="go_csv", use_container_width=True):
-            st.session_state.page = "CSV & trends"; st.session_state.nav_radio = "CSV & trends"; st.rerun()
+    c.metric("High-priority", high)
+
+    st.markdown('<div class="section-eyebrow">WORKSPACE</div><h2>Choose where to begin</h2>', unsafe_allow_html=True)
+    actions = [
+        ("Agent workspace", "Run a diagnostic assessment", "Enter sensor readings and review the agent’s findings."),
+        ("Machine memory", "Review machine history", "Compare previous assessments and download records."),
+        ("CSV & trends", "Analyse sensor data", "Import a CSV and explore changes across readings."),
+    ]
+    for page_name, title, description in actions:
+        left, middle, right = st.columns([1.1, 3.8, 1.2], vertical_alignment="center")
+        with left:
+            st.markdown(f'<span style="color:var(--primary-color);font-weight:650">{page_name}</span>', unsafe_allow_html=True)
+        with middle:
+            st.markdown(f'**{title}**  \n\n<span class="muted">{description}</span>', unsafe_allow_html=True)
+        with right:
+            if st.button("Open →", key="open_" + page_name, use_container_width=True):
+                st.session_state.page = page_name
+                st.session_state.nav_radio = page_name
+                st.rerun()
+        st.markdown('<div class="top-rule" style="margin:.25rem 0 .6rem"></div>', unsafe_allow_html=True)
+
     st.markdown("### Recent activity")
     if history.empty:
-        st.info("Your workspace is ready. Run your first assessment to start building machine memory.")
+        st.caption("No assessments yet. Run your first diagnostic to begin building machine history.")
     else:
-        st.dataframe(history[["timestamp","machine","temperature","vibration","operating_hours","severity","risk_score"]].head(5),
-                     use_container_width=True, hide_index=True)
-    st.caption("Prototype note: demo thresholds are illustrative and should not be used as real-world safety limits.")
+        st.dataframe(
+            history[["timestamp", "machine", "temperature", "vibration", "operating_hours", "severity", "risk_score"]].head(5),
+            use_container_width=True, hide_index=True,
+        )
+    st.caption("Educational prototype · Thresholds are illustrative and are not machine safety limits.")
 
 def workspace_page(username):
     st.markdown('<div class="page-header"><div class="section-eyebrow">DIAGNOSTICS / AGENT</div><h1>Agent workspace</h1><p>Configure a machine snapshot and let the agent investigate the evidence.</p></div>', unsafe_allow_html=True)
